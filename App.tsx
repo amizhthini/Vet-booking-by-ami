@@ -24,6 +24,9 @@ import FinancialsPage from './pages/FinancialsPage';
 import StaffManagementPage from './pages/StaffManagementPage';
 import MasterDataPage from './pages/MasterDataPage';
 import SettingsPage from './pages/SettingsPage';
+import ClinicProfilePage from './pages/ClinicProfilePage';
+import VetLandingPage from './pages/VetLandingPage';
+import ClinicLandingPage from './pages/ClinicLandingPage';
 import type { Appointment, Pet, Vet } from './types';
 import { Page, Role } from './types';
 import { AuthProvider } from './contexts/AuthContext';
@@ -41,12 +44,22 @@ const AppContent: React.FC = () => {
   const [activePet, setActivePet] = useState<Pet | null>(null);
   const [activeVet, setActiveVet] = useState<Vet | null>(null);
   const [loggedInVet, setLoggedInVet] = useState<Vet | null>(null);
+  const [externalPage, setExternalPage] = useState<{ type: 'vet' | 'clinic', id: string } | null>(null);
   
   // State for global notifications
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
   const [toastInfo, setToastInfo] = useState<{ id: number, message: string; type: 'success' | 'error' } | null>(null);
   const [modalAppointment, setModalAppointment] = useState<Appointment | null>(null);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    const id = params.get('id');
+    if ((view === 'vet' || view === 'clinic') && id) {
+        setExternalPage({ type: view, id });
+    }
+  }, []);
+  
   useEffect(() => {
     if (user) {
         getAppointments().then(setAllAppointments).catch(console.error);
@@ -94,6 +107,27 @@ const AppContent: React.FC = () => {
     }
   }, [modalAppointment, startConsultation]);
 
+  const viewVetWebsite = useCallback((vetId: string) => {
+    window.open(`/?view=vet&id=${vetId}`, '_blank');
+  }, []);
+
+  const viewClinicWebsite = useCallback((clinicId: string) => {
+    window.open(`/?view=clinic&id=${clinicId}`, '_blank');
+  }, []);
+
+  const exitExternalView = useCallback(() => {
+    setExternalPage(null);
+    window.history.pushState({}, '', window.location.pathname);
+  }, []);
+
+  if (externalPage) {
+    if (externalPage.type === 'vet') {
+        return <VetLandingPage vetId={externalPage.id} onBack={user ? exitExternalView : undefined} />;
+    }
+    if (externalPage.type === 'clinic') {
+        return <ClinicLandingPage clinicId={externalPage.id} onBack={user ? exitExternalView : undefined} />;
+    }
+  }
 
   if (!user) {
     return <LoginPage />;
@@ -134,6 +168,8 @@ const AppContent: React.FC = () => {
         return <VetManagementPage viewVetProfile={viewVetProfile} />;
       case Page.VetProfile:
         return activeVet ? <VetProfilePage vet={activeVet} navigateTo={navigateTo} /> : <VetManagementPage viewVetProfile={viewVetProfile} />;
+      case Page.ClinicProfile:
+        return <ClinicProfilePage />;
       
       // Vet Pages
       case Page.VetAppointments:
@@ -166,7 +202,7 @@ const AppContent: React.FC = () => {
     <div className="flex h-screen bg-gray-100 font-sans">
       <Sidebar currentPage={currentPage} navigateTo={navigateTo} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header viewVetProfile={viewVetProfile} loggedInVet={loggedInVet} />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 sm:p-6 lg:p-8">
           {renderPage()}
         </main>

@@ -17,6 +17,7 @@ export enum Page {
     ScheduleManagement = 'Schedule Management',
     PatientRecords = 'Patient Records',
     VetProfile = 'Vet Profile',
+    ClinicProfile = 'Clinic Profile',
 
     // Admin Pages
     VetManagement = 'Vet Management',

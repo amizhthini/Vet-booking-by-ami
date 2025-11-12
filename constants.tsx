@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Vet, Pet, Appointment, PetOwner, Report, Referral } from './types';
+import type { Vet, Pet, Appointment, PetOwner, Report, Referral, Clinic } from './types';
 import { ConsultationType } from './types';
 
 export const PET_OWNERS: PetOwner[] = [
@@ -271,6 +271,15 @@ export const REFERRALS: Referral[] = [
     }
 ];
 
+export const CLINICS: Clinic[] = [
+    {
+        id: 'c1',
+        name: 'Happy Paws Clinic',
+        address: '123 Vet Street, New York, NY 10001',
+        vets: VETS.filter(v => v.clinicId === 'c1'),
+    }
+];
+
 
 export const MOCK_TRANSCRIPT = "Okay, Mrs. Davis, so you're saying Buddy has been limping for about three days now? And it's his right hind leg... I see. Is it worse after he gets up from lying down? Yes, that's typical. Okay, I'm just going to examine him. He seems a little sensitive when I extend the hip fully, and I can see a bit of swelling around his knee, or the stifle joint. His gait is definitely off. I don't feel any clicking or grinding, which is good. For now, let's call it a suspected ligament strain. I want him on strict rest for the next week - no running or jumping. I'll prescribe an anti-inflammatory, Carprofen, twice a day. If he's not better, we'll need to get some x-rays. Let's schedule a follow-up appointment to discuss this for next Friday at 2:00 PM. I also want to refer you to Dr. Sarah Chen for that skin issue.";
 
@@ -401,5 +410,11 @@ export const DatabaseIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export const CogIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m18 0h-1.5m-15 0a7.5 7.5 0 1115 0m-15 0H3m18 0h-1.5m-15 0a7.5 7.5 0 1115 0m-15 0H3m18 0h-1.5" />
+    </svg>
+);
+
+export const ArrowTopRightOnSquareIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
     </svg>
 );

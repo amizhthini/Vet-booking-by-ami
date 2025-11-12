@@ -2,11 +2,16 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../ui/Button';
 import { BellIcon } from '../../constants';
-import type { Notification } from '../../types';
+import type { Notification, Vet } from '../../types';
 import { getNotifications, markAllNotificationsAsRead } from '../../services/mockDataService';
 import NotificationPanel from '../NotificationPanel';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+    viewVetProfile: (vet: Vet) => void;
+    loggedInVet: Vet | null;
+}
+
+const Header: React.FC<HeaderProps> = ({ viewVetProfile, loggedInVet }) => {
   const { user, logout } = useAuth();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -48,9 +53,16 @@ const Header: React.FC = () => {
 
   return (
     <header className="flex items-center justify-between p-4 bg-white border-b sticky top-0 z-20">
-      <div>
-        <h1 className="text-xl font-semibold text-gray-800">Welcome, {user?.name}!</h1>
-        <p className="text-sm text-gray-500">You are logged in as: <span className="font-semibold text-teal-600">{user?.role}</span></p>
+      <div className="flex items-center space-x-4">
+        <div>
+            <h1 className="text-xl font-semibold text-gray-800">Welcome, {user?.name}!</h1>
+            <p className="text-sm text-gray-500">You are logged in as: <span className="font-semibold text-teal-600">{user?.role}</span></p>
+        </div>
+        {user?.role === 'Veterinarian' && loggedInVet && (
+            <Button onClick={() => viewVetProfile(loggedInVet)} variant="ghost" size="sm">
+                View My Profile
+            </Button>
+        )}
       </div>
       <div className="flex items-center space-x-4">
         <div className="relative" ref={notificationRef}>

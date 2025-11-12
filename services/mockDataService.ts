@@ -1,5 +1,5 @@
-import { VETS, PETS, APPOINTMENTS, PET_OWNERS, REPORTS, REFERRALS } from '../constants';
-import type { Vet, Pet, Appointment, SoapNote, PetOwner, WeeklyAvailability, Report, PrescriptionReport, FollowUp, Notification, User, Referral } from '../types';
+import { VETS, PETS, APPOINTMENTS, PET_OWNERS, REPORTS, REFERRALS, CLINICS } from '../constants';
+import type { Vet, Pet, Appointment, SoapNote, PetOwner, WeeklyAvailability, Report, PrescriptionReport, FollowUp, Notification, User, Referral, Clinic } from '../types';
 import { ConsultationType } from '../types';
 
 const LS_VETS_KEY = 'vetsync_vets';
@@ -9,6 +9,7 @@ const LS_PET_OWNERS_KEY = 'vetsync_pet_owners';
 const LS_REPORTS_KEY = 'vetsync_reports';
 const LS_NOTIFICATIONS_KEY = 'vetsync_notifications';
 const LS_REFERRALS_KEY = 'vetsync_referrals';
+const LS_CLINICS_KEY = 'vetsync_clinics';
 
 
 const initializeData = <T,>(key: string, defaultData: T[]): T[] => {
@@ -32,6 +33,7 @@ initializeData<PetOwner>(LS_PET_OWNERS_KEY, PET_OWNERS);
 initializeData<Report>(LS_REPORTS_KEY, REPORTS);
 initializeData<Notification>(LS_NOTIFICATIONS_KEY, []);
 initializeData<Referral>(LS_REFERRALS_KEY, REFERRALS);
+initializeData<Clinic>(LS_CLINICS_KEY, CLINICS);
 
 
 const mockApiCall = <T,>(data: T): Promise<T> => {
@@ -375,4 +377,10 @@ export const updateReferral = (referralId: string, updatedData: Partial<Referral
     } else {
         return Promise.reject(new Error("Referral not found"));
     }
+}
+
+// Clinics
+export const getClinics = (): Promise<Clinic[]> => {
+    const clinics = initializeData<Clinic>(LS_CLINICS_KEY, CLINICS);
+    return mockApiCall(clinics);
 }

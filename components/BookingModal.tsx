@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Vet, Pet, Appointment, Attachment, User } from '../types';
 import { ConsultationType } from '../types';
-import { getPets, saveAppointment, updateAppointment } from '../services/mockDataService';
+import { getPets, saveAppointment, updateAppointment, addPet } from '../services/mockDataService';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
 import Spinner from './ui/Spinner';
@@ -41,7 +41,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   allVets = [],
   loggedInVet,
 }) => {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const initialStep = mode === 'reschedule' ? 2 : 1;
   const isCreateMode = mode === 'create';
   const isClinicAdmin = user?.role === 'Clinic Admin';
@@ -57,16 +57,36 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const [attachments, setAttachments] = useState<Attachment[]>(appointmentToReschedule?.attachments || []);
   const [isLoading, setIsLoading] = useState(false);
   const [petSearch, setPetSearch] = useState('');
+  const [showAddPetForm, setShowAddPetForm] = useState(false);
+  const [newPetName, setNewPetName] = useState('');
+  const [newPetBreed, setNewPetBreed] = useState('');
+
+  const fetchUserPets = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    setShowAddPetForm(false);
+    try {
+        const data = await getPets();
+        const filteredUserPets = data.filter(p => p.ownerId === user.id);
+        setUserPets(filteredUserPets);
+        if (filteredUserPets.length === 0 && mode === 'book') {
+            setShowAddPetForm(true);
+        }
+    } catch (error) {
+        console.error("Failed to fetch pets", error);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && user && (mode === 'book' || mode === 'reschedule')) {
+      fetchUserPets();
+    }
+  }, [isOpen, user, mode]);
 
   useEffect(() => {
     if (isOpen) {
-      if (mode === 'book') {
-        setIsLoading(true);
-        getPets().then(data => {
-          setUserPets(data);
-          setIsLoading(false);
-        });
-      }
       // Reset state on open/prop change
       setStep(initialStep);
       setSelectedPet(appointmentToReschedule?.pet || null);
@@ -77,8 +97,36 @@ const BookingModal: React.FC<BookingModalProps> = ({
       setUserNotes(appointmentToReschedule?.userNotes || '');
       setAttachments(appointmentToReschedule?.attachments || []);
       setPetSearch('');
+      setShowAddPetForm(false);
+      setNewPetName('');
+      setNewPetBreed('');
     }
   }, [isOpen, appointmentToReschedule, mode, initialStep, vet, loggedInVet]);
+
+  const handleAddNewPet = async () => {
+    if (!newPetName || !newPetBreed || !user) return;
+    setIsLoading(true);
+    try {
+      const newPetData = {
+        name: newPetName,
+        breed: newPetBreed,
+        age: 0,
+        imageUrl: `https://picsum.photos/seed/${newPetName.toLowerCase()}/200`,
+        ownerId: user.id,
+        healthRecord: { vaccinations: [], allergies: [], medications: [] }
+      };
+      const newPet = await addPet(newPetData);
+      setUserPets([newPet]);
+      setSelectedPet(newPet);
+      setShowAddPetForm(false);
+    } catch (error) {
+      console.error("Failed to add pet", error);
+      onComplete({ success: false, error: 'Failed to add your pet. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   const handleFinalConfirm = async () => {
     const currentVet = isCreateMode ? selectedVet : (mode === 'reschedule' ? appointmentToReschedule?.vet : vet);
@@ -134,15 +182,53 @@ const BookingModal: React.FC<BookingModalProps> = ({
   let title = `Book Appointment with ${vet?.name}`;
   if (mode === 'reschedule') title = `Reschedule for ${selectedPet?.name}`;
   if (mode === 'create') title = 'Create New Appointment';
+  if (showAddPetForm) title = 'First, Add Your Pet';
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      {isLoading && step !== 3 ? (
-        <div className="flex justify-center items-center h-48"><Spinner /></div>
-      ) : (
+  // Handle unauthenticated user
+  if (!user) {
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Please Log In">
+            <div className="text-center">
+                <p className="mb-4 text-gray-600">To book an appointment, please log in to your Pet Parent account.</p>
+                <Button size="lg" className="w-full" onClick={() => login('Pet Parent')}>
+                    Login as Pet Parent
+                </Button>
+            </div>
+        </Modal>
+    );
+  }
+
+  const renderContent = () => {
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-48"><Spinner /></div>;
+    }
+    
+    if (showAddPetForm) {
+        return (
+            <div>
+                <h3 className="font-semibold text-lg mb-4">Add a Pet to Continue</h3>
+                <p className="text-sm text-gray-500 mb-4">We need to know which pet this appointment is for. Please add their basic details.</p>
+                <div className="space-y-4">
+                    <div>
+                        <label htmlFor="newPetName" className="block text-sm font-medium text-gray-700">Pet Name</label>
+                        <input type="text" id="newPetName" value={newPetName} onChange={e => setNewPetName(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" />
+                    </div>
+                    <div>
+                        <label htmlFor="newPetBreed" className="block text-sm font-medium text-gray-700">Breed</label>
+                        <input type="text" id="newPetBreed" value={newPetBreed} onChange={e => setNewPetBreed(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" />
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-end">
+                    <Button onClick={handleAddNewPet} disabled={!newPetName || !newPetBreed}>Save and Continue</Button>
+                </div>
+            </div>
+        );
+    }
+    
+    return (
         <div>
-          {/* Step 1: Select Pet (and Vet for Admins in Create mode) */}
-          {step === 1 && (
+            {/* Step 1: Select Pet (and Vet for Admins in Create mode) */}
+            {step === 1 && (
             <div>
               {isCreateMode ? (
                 <div className="space-y-4">
@@ -176,12 +262,14 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 <>
                   <h3 className="font-semibold text-lg mb-4">Which pet is this for?</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    {userPets.map(pet => (
+                    {userPets.length > 0 ? userPets.map(pet => (
                       <div key={pet.id} onClick={() => setSelectedPet(pet)} className={`p-4 border rounded-lg cursor-pointer ${selectedPet?.id === pet.id ? 'border-teal-500 ring-2 ring-teal-500' : 'border-gray-200'}`}>
                         <img src={pet.imageUrl} alt={pet.name} className="w-16 h-16 rounded-full mx-auto mb-2" />
                         <p className="text-center font-medium">{pet.name}</p>
                       </div>
-                    ))}
+                    )) : (
+                        <p className="col-span-2 text-center text-gray-500">Something went wrong. Please refresh.</p>
+                    )}
                   </div>
                 </>
               )}
@@ -236,7 +324,13 @@ const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           )}
         </div>
-      )}
+    );
+  };
+
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+      {renderContent()}
     </Modal>
   );
 };

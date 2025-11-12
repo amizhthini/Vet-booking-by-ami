@@ -70,6 +70,7 @@ const ClinicNav: React.FC<SidebarProps> = (props) => (
       <NavItem page={Page.ScheduleManagement} {...props} icon={<ClockIcon />} />
       <NavItem page={Page.PatientRecords} {...props} icon={<FolderOpenIcon />} />
       <NavItem page={Page.VetManagement} {...props} icon={<VetsIcon />} />
+      <NavItem page={Page.ClinicProfile} {...props} icon={<BuildingOfficeIcon />} />
       <NavItem page={Page.StaffManagement} {...props} icon={<UsersGroupIcon />} />
       <NavItem page={Page.Referrals} {...props} icon={<ArrowRightCircleIcon />} />
       <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />

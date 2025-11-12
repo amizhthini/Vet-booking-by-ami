@@ -9,6 +9,8 @@ import Calendar from '../components/Calendar';
 import Spinner from '../components/ui/Spinner';
 import WeeklyAvailabilityManager from '../components/WeeklyAvailabilityManager';
 import Tabs from '../components/ui/Tabs';
+import { ArrowTopRightOnSquareIcon } from '../constants';
+import { useAuth } from '../hooks/useAuth';
 
 interface VetProfilePageProps {
   vet: Vet;
@@ -16,6 +18,7 @@ interface VetProfilePageProps {
 }
 
 const VetProfilePage: React.FC<VetProfilePageProps> = ({ vet: initialVet, navigateTo }) => {
+    const { user } = useAuth();
     const [vet, setVet] = useState<Vet>(initialVet);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -42,12 +45,29 @@ const VetProfilePage: React.FC<VetProfilePageProps> = ({ vet: initialVet, naviga
         }
     };
 
+    const handleBackClick = () => {
+        if (user?.role === 'Veterinarian' && user.id === vet.id) {
+            navigateTo(Page.Dashboard);
+        } else {
+            navigateTo(Page.VetManagement);
+        }
+    };
+
+    const handleViewPublicWebsite = () => {
+        const url = new URL(window.location.origin);
+        url.searchParams.set('view', 'vet');
+        url.searchParams.set('id', vet.id);
+        window.open(url.toString(), '_blank');
+    };
+    
+    const isOwnProfile = user?.role === 'Veterinarian' && user.id === vet.id;
+    const backButtonText = isOwnProfile ? 'Back to Dashboard' : 'Back to Vet Management';
 
     return (
         <PageWrapper title={`Profile: ${vet.name}`}>
              <div className="mb-4">
-                <Button variant="ghost" onClick={() => navigateTo(Page.VetManagement)}>
-                    &larr; Back to Vet Management
+                <Button variant="ghost" onClick={handleBackClick}>
+                    &larr; {backButtonText}
                 </Button>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -57,6 +77,10 @@ const VetProfilePage: React.FC<VetProfilePageProps> = ({ vet: initialVet, naviga
                             <img src={vet.imageUrl} alt={vet.name} className="w-32 h-32 rounded-full object-cover mb-4" />
                             <h2 className="text-2xl font-bold text-gray-800">{vet.name}</h2>
                             <p className="text-teal-600">{vet.specialty}</p>
+                            <Button onClick={handleViewPublicWebsite} className="mt-4 flex items-center justify-center" variant="secondary">
+                                <ArrowTopRightOnSquareIcon className="w-5 h-5 mr-2" />
+                                View Public Website
+                            </Button>
                         </div>
                     </Card>
                     <Card>
