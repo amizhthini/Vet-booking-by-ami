@@ -8,6 +8,8 @@ import VetCard from '../components/VetCard';
 import Spinner from '../components/ui/Spinner';
 import Button from '../components/ui/Button';
 import AddAppointmentDetailsModal from '../components/AddAppointmentDetailsModal';
+import BookingModal from '../components/BookingModal';
+import Toast from '../components/ui/Toast';
 
 
 interface DashboardPageProps {
@@ -21,6 +23,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
   const [isLoading, setIsLoading] = useState(true);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [appointmentToReschedule, setAppointmentToReschedule] = useState<Appointment | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
 
   useEffect(() => {
@@ -30,7 +35,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
         const [appointments, vets] = await Promise.all([getAppointments(), getVets()]);
         const upcoming = appointments
           .filter(a => a.status === 'Upcoming')
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .sort((a, b) => new Date(`${a.date} ${a.time}`).getTime() - new Date(`${b.date} ${b.time}`).getTime())
           .slice(0, 2);
         
         setUpcomingAppointments(upcoming);
@@ -56,6 +61,35 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
         setUpcomingAppointments(prev => prev.map(a => a.id === appointmentId ? updatedAppt : a));
     } catch (error) {
         console.error("Failed to save details:", error);
+        setToast({ message: 'Failed to save details.', type: 'error' });
+    }
+  };
+  
+  const handleOpenRescheduleModal = (appointment: Appointment) => {
+    setAppointmentToReschedule(appointment);
+    setIsRescheduleModalOpen(true);
+  };
+
+  const handleRescheduleComplete = (result: { success: boolean; data?: Appointment; error?: string }) => {
+    if (result.success && result.data) {
+        setUpcomingAppointments(prev => prev.map(a => a.id === result.data!.id ? result.data! : a));
+        setToast({ message: 'Appointment rescheduled successfully!', type: 'success' });
+    } else {
+        setToast({ message: result.error || 'Failed to reschedule.', type: 'error' });
+    }
+    setAppointmentToReschedule(null);
+  };
+
+  const handleCancelAppointment = async (appointment: Appointment) => {
+    if (window.confirm(`Are you sure you want to cancel your appointment for ${appointment.pet.name}?`)) {
+        try {
+            await updateAppointment(appointment.id, { status: 'Cancelled' });
+            setUpcomingAppointments(prev => prev.filter(a => a.id !== appointment.id));
+            setToast({ message: 'Appointment cancelled successfully.', type: 'success' });
+        } catch (error) {
+            console.error("Failed to cancel appointment:", error);
+            setToast({ message: 'Failed to cancel appointment.', type: 'error' });
+        }
     }
   };
 
@@ -72,6 +106,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
 
   return (
     <PageWrapper title="Dashboard">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-4">
@@ -84,7 +119,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
                 key={appt.id} 
                 appointment={appt} 
                 onStartConsultation={startConsultation}
-                onAddDetails={handleOpenDetailsModal} 
+                onAddDetails={handleOpenDetailsModal}
+                onReschedule={handleOpenRescheduleModal}
+                onCancel={handleCancelAppointment}
                 />
             ))
           ) : (
@@ -116,6 +153,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
         onClose={() => setIsDetailsModalOpen(false)}
         appointment={selectedAppointment}
         onSave={handleSaveDetails}
+      />
+       <BookingModal 
+        isOpen={isRescheduleModalOpen}
+        onClose={() => setIsRescheduleModalOpen(false)}
+        vet={appointmentToReschedule?.vet || null}
+        appointmentToReschedule={appointmentToReschedule}
+        onComplete={handleRescheduleComplete}
       />
     </PageWrapper>
   );

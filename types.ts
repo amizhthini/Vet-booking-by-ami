@@ -5,6 +5,8 @@ export enum Page {
     MyPets = 'My Pets',
     Consultation = 'Consultation',
     PetProfile = 'Pet Profile',
+    Reports = 'Reports',
+    DocManagement = 'Document Management',
     
     // Vet Pages
     Schedule = 'Schedule',
@@ -115,7 +117,7 @@ export interface FollowUp {
 
 export interface Attachment {
     name: string;
-    type: 'image' | 'video';
+    type: 'image' | 'video' | 'record';
     url: string; // data URL for preview
 }
 
@@ -133,3 +135,39 @@ export interface Appointment {
     prescriptions?: Prescription[];
     followUp?: FollowUp;
 }
+
+// Reports
+export interface BaseReport {
+  id: string; // Reference number
+  petId: string;
+  date: string; // ISO string for timestamp
+}
+
+export interface PawScanReport extends BaseReport {
+  type: 'PawScan';
+  summary: string;
+  dataUrl: string; // Link to the detailed report/scan image
+}
+
+export interface PawCamReport extends BaseReport {
+  type: 'PawCam';
+  summary: string;
+  videoUrl: string; // Link to the video
+}
+
+export interface ConsultationReport {
+  id: string; // appointmentId
+  petId: string;
+  date: string; // appointment date and time
+  type: 'Consultation';
+  vetName: string;
+  summary: string;
+}
+
+export interface PrescriptionReport extends BaseReport {
+    type: 'Prescription';
+    medications: Prescription[];
+    vetName: string;
+}
+
+export type Report = PawScanReport | PawCamReport | ConsultationReport | PrescriptionReport;

@@ -14,6 +14,8 @@ import VetProfilePage from './pages/VetProfilePage';
 import ScheduleManagementPage from './pages/ScheduleManagementPage';
 import VetPatientsPage from './pages/VetPatientsPage';
 import ClinicSchedulePage from './pages/ClinicSchedulePage';
+import ReportsPage from './pages/ReportsPage';
+import DocManagementPage from './pages/DocManagementPage';
 import type { Appointment, Pet, Vet } from './types';
 import { Page, Role } from './types';
 import { AuthProvider } from './contexts/AuthContext';
@@ -73,6 +75,12 @@ const AppContent: React.FC = () => {
       case Page.Consultation:
         return activeAppointment ? <ConsultationPage appointment={activeAppointment} navigateTo={navigateTo} /> : <DashboardPage navigateTo={navigateTo} startConsultation={startConsultation}/>;
       
+      // All-role pages
+      case Page.Reports:
+        return <ReportsPage />;
+      case Page.DocManagement:
+        return <DocManagementPage />;
+
       // Clinic Admin Pages
       case Page.PatientRecords:
         return <PatientRecordsPage viewPetProfile={viewPetProfile} />;

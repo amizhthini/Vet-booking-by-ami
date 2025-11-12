@@ -1,6 +1,6 @@
 import React from 'react';
 import { Page, Role } from '../../types';
-import { DashboardIcon, VetsIcon, CalendarIcon, PetIcon, UsersIcon, BuildingOfficeIcon, FolderOpenIcon, ClockIcon } from '../../constants';
+import { DashboardIcon, VetsIcon, CalendarIcon, PetIcon, UsersIcon, BuildingOfficeIcon, FolderOpenIcon, ClockIcon, DocumentChartBarIcon, DocumentPlusIcon } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 interface SidebarProps {
@@ -37,6 +37,8 @@ const PetParentNav: React.FC<SidebarProps> = (props) => (
     <NavItem page={Page.Vets} {...props} icon={<VetsIcon />} />
     <NavItem page={Page.Appointments} {...props} icon={<CalendarIcon />} />
     <NavItem page={Page.MyPets} {...props} icon={<PetIcon />} />
+    <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
+    <NavItem page={Page.DocManagement} {...props} icon={<DocumentPlusIcon />} />
   </ul>
 );
 
@@ -45,6 +47,8 @@ const VetNav: React.FC<SidebarProps> = (props) => (
     <NavItem page={Page.Dashboard} {...props} icon={<DashboardIcon />} />
     <NavItem page={Page.Schedule} {...props} icon={<CalendarIcon />} />
     <NavItem page={Page.Patients} {...props} icon={<PetIcon />} />
+    <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
+    <NavItem page={Page.DocManagement} {...props} icon={<DocumentPlusIcon />} />
   </ul>
 );
 
@@ -54,6 +58,8 @@ const ClinicNav: React.FC<SidebarProps> = (props) => (
       <NavItem page={Page.VetManagement} {...props} icon={<VetsIcon />} />
       <NavItem page={Page.ScheduleManagement} {...props} icon={<ClockIcon />} />
       <NavItem page={Page.PatientRecords} {...props} icon={<FolderOpenIcon />} />
+      <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
+      <NavItem page={Page.DocManagement} {...props} icon={<DocumentPlusIcon />} />
     </ul>
 );
 
@@ -63,6 +69,7 @@ const AdminNav: React.FC<SidebarProps> = (props) => (
       <NavItem page={Page.VetManagement} {...props} icon={<VetsIcon />} />
       <NavItem page={Page.ClinicManagement} {...props} icon={<BuildingOfficeIcon />} />
       <NavItem page={Page.UserManagement} {...props} icon={<UsersIcon />} />
+       <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
     </ul>
 );
 

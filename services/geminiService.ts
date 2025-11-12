@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import type { SoapNote } from "../types";
+import type { SoapNote, Prescription } from "../types";
 
 const API_KEY = process.env.API_KEY;
 
@@ -49,7 +49,6 @@ export const generateSoapNotesFromTranscript = async (transcript: string): Promi
         const jsonText = response.text.trim();
         const parsedJson = JSON.parse(jsonText);
         
-        // Basic validation to ensure the response matches the SOAP note structure
         if (
             'subjective' in parsedJson &&
             'objective' in parsedJson &&
@@ -66,3 +65,76 @@ export const generateSoapNotesFromTranscript = async (transcript: string): Promi
         throw new Error("Failed to generate SOAP notes. Please try again.");
     }
 };
+
+const documentAnalysisSchema = {
+    type: Type.OBJECT,
+    properties: {
+        documentType: {
+            type: Type.STRING,
+            enum: ['SOAP Note', 'Prescription', 'Radiography Report', 'Lab Result', 'Other'],
+            description: "The identified type of the veterinary document."
+        },
+        summary: {
+            type: Type.STRING,
+            description: "A concise, one or two-sentence summary of the document's key findings or purpose."
+        },
+        date: {
+            type: Type.STRING,
+            description: "The primary date found on the document, formatted as YYYY-MM-DD. If no date is found, return null."
+        },
+        details: {
+            type: Type.OBJECT,
+            description: "Structured data specific to the document type. For 'SOAP Note', this will be a SoapNote object. For 'Prescription', it will be an array of Prescription objects.",
+            properties: {
+                 // Properties for SOAP Note
+                subjective: { type: Type.STRING },
+                objective: { type: Type.STRING },
+                assessment: { type: Type.STRING },
+                plan: { type: Type.STRING },
+                // Properties for Prescription
+                medications: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            medication: { type: Type.STRING },
+                            dosage: { type: Type.STRING },
+                            frequency: { type: Type.STRING },
+                        }
+                    }
+                }
+            }
+        }
+    },
+    required: ["documentType", "summary", "date", "details"],
+}
+
+export const analyzeDocument = async (file: { mimeType: string, data: string }): Promise<any> => {
+    try {
+        const prompt = `Analyze the following veterinary document. Identify its type from the list: 'SOAP Note', 'Prescription', 'Radiography Report', 'Lab Result', 'Other'. Extract a concise summary and the document's date. Based on the type, extract specific details. If it's a SOAP Note, extract the S, O, A, and P sections. If it's a prescription, extract each medication, its dosage, and frequency. Format the entire output as JSON using the provided schema.`;
+
+        const imagePart = {
+            inlineData: {
+                mimeType: file.mimeType,
+                data: file.data,
+            },
+        };
+        const textPart = { text: prompt };
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: { parts: [imagePart, textPart] },
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: documentAnalysisSchema,
+            }
+        });
+        
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText);
+
+    } catch (error) {
+        console.error("Error analyzing document with Gemini:", error);
+        throw new Error("Failed to analyze the document. The file might be unreadable or in an unsupported format.");
+    }
+}

@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
-import type { Pet, Appointment, PetOwner } from '../types';
+import type { Pet, Appointment, PetOwner, Attachment } from '../types';
 import { Page } from '../types';
-import { getAppointments, getPetOwners } from '../services/mockDataService';
+import { getAppointments, getPetOwners, updateAppointment } from '../services/mockDataService';
 import Card from '../components/ui/Card';
 import Spinner from '../components/ui/Spinner';
 import AppointmentCard from '../components/AppointmentCard';
 import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
+import AddAppointmentDetailsModal from '../components/AddAppointmentDetailsModal';
+import BookingModal from '../components/BookingModal';
+import Toast from '../components/ui/Toast';
 
 interface PetProfilePageProps {
   pet: Pet;
@@ -33,6 +36,13 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
     const [owner, setOwner] = useState<PetOwner | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { user } = useAuth();
+
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+    const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+    const [appointmentToReschedule, setAppointmentToReschedule] = useState<Appointment | null>(null);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -67,6 +77,49 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
         }
     };
 
+    const handleOpenDetailsModal = (appointment: Appointment) => {
+        setSelectedAppointment(appointment);
+        setIsDetailsModalOpen(true);
+    };
+
+    const handleSaveDetails = async (appointmentId: string, data: { userNotes?: string; attachments?: Attachment[] }) => {
+        try {
+            const updatedAppt = await updateAppointment(appointmentId, data);
+            setAllAppointments(prev => prev.map(a => a.id === appointmentId ? updatedAppt : a));
+        } catch (error) {
+            console.error("Failed to save details:", error);
+            setToast({ message: 'Failed to save details.', type: 'error' });
+        }
+    };
+
+    const handleOpenRescheduleModal = (appointment: Appointment) => {
+        setAppointmentToReschedule(appointment);
+        setIsRescheduleModalOpen(true);
+    };
+    
+    const handleRescheduleComplete = (result: { success: boolean; data?: Appointment; error?: string }) => {
+        if (result.success && result.data) {
+            setAllAppointments(prev => prev.map(a => a.id === result.data!.id ? result.data! : a));
+            setToast({ message: 'Appointment rescheduled successfully!', type: 'success' });
+        } else {
+            setToast({ message: result.error || 'Failed to reschedule.', type: 'error' });
+        }
+        setAppointmentToReschedule(null);
+    };
+
+    const handleCancelAppointment = async (appointment: Appointment) => {
+        if (window.confirm(`Are you sure you want to cancel this appointment? This action cannot be undone.`)) {
+            try {
+                const updatedAppt = await updateAppointment(appointment.id, { status: 'Cancelled' });
+                setAllAppointments(prev => prev.map(a => a.id === appointment.id ? updatedAppt : a));
+                setToast({ message: 'Appointment cancelled successfully.', type: 'success' });
+            } catch (error) {
+                console.error("Failed to cancel appointment:", error);
+                setToast({ message: 'Failed to cancel appointment.', type: 'error' });
+            }
+        }
+    };
+
     if (isLoading) {
         return (
             <PageWrapper title={`Loading Profile for ${pet.name}...`}>
@@ -77,6 +130,7 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
     
     return (
         <PageWrapper title={`Patient Profile: ${pet.name}`}>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
              <div className="mb-4">
                 <Button variant="ghost" onClick={handleBackClick}>
                     &larr; Back to Patient List
@@ -107,7 +161,14 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
                     {petAppointments.length > 0 ? (
                         <div className="space-y-4">
                            {petAppointments.map(appt => (
-                                <AppointmentCard key={appt.id} appointment={appt} onStartConsultation={() => {}} onAddDetails={() => {}} />
+                                <AppointmentCard 
+                                    key={appt.id} 
+                                    appointment={appt} 
+                                    onStartConsultation={() => {}} 
+                                    onAddDetails={user?.role === 'Pet Parent' ? handleOpenDetailsModal : () => {}}
+                                    onReschedule={user?.role === 'Pet Parent' ? handleOpenRescheduleModal : undefined}
+                                    onCancel={user?.role === 'Pet Parent' ? handleCancelAppointment : () => {}}
+                                />
                            ))}
                         </div>
                     ): (
@@ -117,6 +178,23 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
                     )}
                 </div>
             </div>
+            {user?.role === 'Pet Parent' && (
+                <>
+                    <AddAppointmentDetailsModal 
+                        isOpen={isDetailsModalOpen}
+                        onClose={() => setIsDetailsModalOpen(false)}
+                        appointment={selectedAppointment}
+                        onSave={handleSaveDetails}
+                    />
+                    <BookingModal 
+                        isOpen={isRescheduleModalOpen}
+                        onClose={() => setIsRescheduleModalOpen(false)}
+                        vet={appointmentToReschedule?.vet || null}
+                        appointmentToReschedule={appointmentToReschedule}
+                        onComplete={handleRescheduleComplete}
+                    />
+                </>
+            )}
         </PageWrapper>
     );
 };

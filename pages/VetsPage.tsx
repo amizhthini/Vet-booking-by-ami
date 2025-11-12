@@ -78,7 +78,7 @@ const VetsPage: React.FC<VetsPageProps> = ({ navigateTo }) => {
     setSelectedVet(null);
   };
 
-  const handleBookingCompletion = (result: { success: boolean; error?: string }) => {
+  const handleBookingCompletion = (result: { success: boolean; data?: Appointment; error?: string }) => {
     if (result.success) {
       setToast({ message: 'Booking successful! Redirecting...', type: 'success' });
       setTimeout(() => {
