@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+// FIX: Import React to fix "Cannot find namespace 'React'" error.
+import React, { useEffect, useRef } from 'react';
 import type { Appointment } from '../types';
 
 interface AppointmentNotifierProps {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import type { Pet, Appointment, PetOwner, Attachment } from '../types';
@@ -125,6 +126,8 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
         onReschedule: handleOpenRescheduleModal,
         onCancel: handleCancelAppointment,
     } : {};
+    
+    const backButtonText = user?.role === 'Veterinarian' ? 'Back to Patients' : 'Back to Patient Records';
 
     if (isLoading) {
         return (
@@ -135,13 +138,12 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
     }
     
     return (
-        <PageWrapper title={`Patient Profile: ${pet.name}`}>
+        <PageWrapper 
+            title={`Patient Profile: ${pet.name}`}
+            onBack={handleBackClick}
+            backButtonText={backButtonText}
+        >
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-             <div className="mb-4">
-                <Button variant="ghost" onClick={handleBackClick}>
-                    &larr; Back to Patient List
-                </Button>
-            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1 space-y-6">
                     <Card>

@@ -85,10 +85,6 @@ const DocManagementPage: React.FC = () => {
             date: aiResult.date ? new Date(aiResult.date).toISOString() : new Date().toISOString(),
         };
 
-        // FIX: The `Report` type is a discriminated union. To avoid type errors when
-        // creating a specific report type, we create a typed variable for the report data
-        // before passing it to the `addReport` function. This helps TypeScript correctly
-        // infer the object's shape against the appropriate member of the union.
         const createAndSaveReport = () => {
             switch (aiResult.documentType) {
                 case 'SOAP Note': {

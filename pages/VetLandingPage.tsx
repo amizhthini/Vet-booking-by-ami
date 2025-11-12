@@ -56,10 +56,10 @@ const VetLandingPage: React.FC<VetLandingPageProps> = ({ vetId, onBack }) => {
     }
 
     return (
-    <div className="bg-gray-50 min-h-screen font-sans">
+    <div className="bg-gray-50 min-h-screen font-sans relative">
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         {onBack && (
-            <div className="absolute top-4 left-4">
+            <div className="absolute top-4 left-4 z-50">
                 <Button onClick={onBack} variant="secondary">&larr; Back to App</Button>
             </div>
         )}

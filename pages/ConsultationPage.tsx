@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { Appointment, SoapNote } from '../types';
 import { Page } from '../types';
@@ -67,7 +68,11 @@ const ConsultationPage: React.FC<ConsultationPageProps> = ({ appointment, naviga
   };
 
   return (
-    <PageWrapper title={`Consultation for ${appointment.pet.name}`}>
+    <PageWrapper 
+        title={`Consultation for ${appointment.pet.name}`}
+        onBack={() => navigateTo(Page.Dashboard)}
+        backButtonText="Back to Dashboard"
+    >
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card>
@@ -79,8 +84,6 @@ const ConsultationPage: React.FC<ConsultationPageProps> = ({ appointment, naviga
 
           <div className="space-y-4">
             {recorderState !== 'recording' ? (
-                // FIX: The `disabled` condition was impossible since this button only renders when `recorderState` is NOT 'recording'.
-                // The button should be disabled while waiting for microphone permission.
                 <Button onClick={startRecording} disabled={recorderState === 'permission'} className="w-full">
                     <MicrophoneIcon className="w-5 h-5 mr-2" />
                     Start Recording

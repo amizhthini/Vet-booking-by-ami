@@ -37,7 +37,6 @@ const ScheduleManagementPage: React.FC<ScheduleManagementPageProps> = ({ vet: in
             />
             <div className="mt-6">
                 {activeTab === 'Appointments Calendar' && (
-                    // FIX: The Card component was used without being imported.
                      <Card>
                         <h3 className="text-lg font-bold text-gray-800 mb-4">My Appointments</h3>
                         <Calendar events={vet.schedule} />

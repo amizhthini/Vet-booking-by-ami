@@ -6,9 +6,11 @@ import Spinner from '../components/ui/Spinner';
 import { getClinics } from '../services/mockDataService';
 import type { Clinic } from '../types';
 
-interface ClinicProfilePageProps {}
+interface ClinicProfilePageProps {
+    onViewPublicPage: (type: 'clinic', id: string) => void;
+}
 
-const ClinicProfilePage: React.FC<ClinicProfilePageProps> = () => {
+const ClinicProfilePage: React.FC<ClinicProfilePageProps> = ({ onViewPublicPage }) => {
     const [clinic, setClinic] = useState<Clinic | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const clinicId = 'c1'; // Mock for demo
@@ -26,10 +28,7 @@ const ClinicProfilePage: React.FC<ClinicProfilePageProps> = () => {
 
     const handleViewPublicWebsite = () => {
         if (!clinic) return;
-        const url = new URL(window.location.origin);
-        url.searchParams.set('view', 'clinic');
-        url.searchParams.set('id', clinic.id);
-        window.open(url.toString(), '_blank');
+        onViewPublicPage('clinic', clinic.id);
     };
 
     if (isLoading) {

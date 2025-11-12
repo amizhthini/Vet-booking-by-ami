@@ -53,7 +53,9 @@ const AppContent: React.FC = () => {
   const [modalAppointment, setModalAppointment] = useState<Appointment | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    // Use hash-based routing for public pages to prevent 404s on direct navigation.
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
     const view = params.get('view');
     const id = params.get('id');
     if ((view === 'vet' || view === 'clinic') && id) {
@@ -108,17 +110,14 @@ const AppContent: React.FC = () => {
     }
   }, [modalAppointment, startConsultation]);
 
-  const viewVetWebsite = useCallback((vetId: string) => {
-    window.open(`/?view=vet&id=${vetId}`, '_blank');
-  }, []);
-
-  const viewClinicWebsite = useCallback((clinicId: string) => {
-    window.open(`/?view=clinic&id=${clinicId}`, '_blank');
-  }, []);
-
   const exitExternalView = useCallback(() => {
     setExternalPage(null);
-    window.history.pushState({}, '', window.location.pathname);
+    // Clear the hash from the URL without reloading
+    window.history.pushState("", document.title, window.location.pathname + window.location.search);
+  }, []);
+
+  const viewPublicPage = useCallback((type: 'vet' | 'clinic', id: string) => {
+    setExternalPage({ type, id });
   }, []);
 
   if (externalPage) {
@@ -170,17 +169,17 @@ const AppContent: React.FC = () => {
       case Page.VetProfile:
         return activeVet ? <VetProfilePage vet={activeVet} navigateTo={navigateTo} /> : <VetManagementPage viewVetProfile={viewVetProfile} />;
       case Page.ClinicProfile:
-        return <ClinicProfilePage />;
+        return <ClinicProfilePage onViewPublicPage={viewPublicPage} />;
       
       // Vet Pages
       case Page.VetAppointments:
         return loggedInVet ? <VetAppointmentsPage vet={loggedInVet} startConsultation={startConsultation} /> : <PlaceholderPage title="Loading Appointments..." />;
       case Page.Patients:
         return loggedInVet ? <VetPatientsPage vet={loggedInVet} viewPetProfile={viewPetProfile} /> : <PlaceholderPage title="Loading Patients..." />;
-      case Page.Website:
-        return loggedInVet ? <WebsiteManagementPage vet={loggedInVet} /> : <PlaceholderPage title="Loading..." />;
       case Page.Templates:
         return <TemplatesPage />;
+      case Page.WebsiteManagement:
+        return loggedInVet ? <WebsiteManagementPage vet={loggedInVet} onViewPublicPage={viewPublicPage} /> : <PlaceholderPage title="Loading Website..." />;
       case Page.StaffManagement:
         return <StaffManagementPage />;
       case Page.MasterData:

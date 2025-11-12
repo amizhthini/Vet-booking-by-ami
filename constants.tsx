@@ -307,6 +307,12 @@ export const CLINICS: Clinic[] = [
         name: 'Happy Paws Clinic',
         address: '123 Vet Street, New York, NY 10001',
         vets: VETS.filter(v => v.clinicId === 'c1'),
+    },
+    {
+        id: 'c2',
+        name: 'Advanced Pet Care',
+        address: '456 Care Avenue, San Francisco, CA 94102',
+        vets: VETS.filter(v => v.clinicId === 'c2'),
     }
 ];
 

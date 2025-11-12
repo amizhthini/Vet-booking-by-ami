@@ -7,15 +7,15 @@ import Toast from '../components/ui/Toast';
 
 interface WebsiteManagementPageProps {
     vet: Vet;
+    onViewPublicPage: (type: 'vet' | 'clinic', id: string) => void;
 }
 
-const WebsiteManagementPage: React.FC<WebsiteManagementPageProps> = ({ vet }) => {
+const WebsiteManagementPage: React.FC<WebsiteManagementPageProps> = ({ vet, onViewPublicPage }) => {
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     const getPublicUrl = () => {
         const url = new URL(window.location.origin);
-        url.searchParams.set('view', 'vet');
-        url.searchParams.set('id', vet.id);
+        url.hash = `view=vet&id=${vet.id}`;
         return url.toString();
     };
 
@@ -30,10 +30,18 @@ const WebsiteManagementPage: React.FC<WebsiteManagementPageProps> = ({ vet }) =>
         });
     };
 
+    const getClinicPublicUrl = () => {
+        if (!vet.clinicId) return '';
+        const url = new URL(window.location.origin);
+        url.hash = `view=clinic&id=${vet.clinicId}`;
+        return url.toString();
+    };
+    const clinicPublicUrl = getClinicPublicUrl();
+
     const embedCode = `<a href="${publicUrl}" 
    target="_blank" 
    style="display: inline-block; padding: 12px 24px; background-color: #0d9488; color: white; text-decoration: none; font-family: sans-serif; border-radius: 8px; font-weight: bold;">
-  Book on VetSync AI
+  Book with ${vet.name}
 </a>`;
 
     return (
@@ -41,8 +49,8 @@ const WebsiteManagementPage: React.FC<WebsiteManagementPageProps> = ({ vet }) =>
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <div className="space-y-8 max-w-4xl mx-auto">
                 <Card>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Your Public Website Link</h2>
-                    <p className="text-gray-600 mb-4">This is your direct, shareable link. Use this link to allow clients to view your profile and book appointments.</p>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Your Personal Public Website</h2>
+                    <p className="text-gray-600 mb-4">This is your direct, shareable link. Use this link to allow clients to view your profile and book appointments directly with you.</p>
                     
                     <div className="p-4 bg-gray-100 rounded-lg">
                         <p className="text-xs text-gray-500">Shareable Link:</p>
@@ -56,11 +64,37 @@ const WebsiteManagementPage: React.FC<WebsiteManagementPageProps> = ({ vet }) =>
 
                     <div className="mt-4 flex flex-wrap gap-2">
                         <Button onClick={() => copyToClipboard(publicUrl)}>Copy Link</Button>
-                        <Button variant="secondary" onClick={() => window.open(publicUrl, '_blank')}>
+                        <Button variant="secondary" onClick={() => onViewPublicPage('vet', vet.id)}>
                             View My Site
                         </Button>
                     </div>
                 </Card>
+
+                {vet.clinicId && (
+                    <Card>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Your Clinic's Public Website</h2>
+                        <p className="text-gray-600 mb-4">You are part of <strong>{vet.clinicName}</strong>. You can also share the link to your clinic's main page which lists all available vets.</p>
+                        
+                        <div className="p-4 bg-gray-100 rounded-lg">
+                            <p className="text-xs text-gray-500">Clinic Shareable Link:</p>
+                            <input 
+                                type="text" 
+                                readOnly 
+                                value={clinicPublicUrl}
+                                className="w-full p-2 mt-1 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            />
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            <Button onClick={() => copyToClipboard(clinicPublicUrl)}>Copy Clinic Link</Button>
+                            {vet.clinicId && (
+                                <Button variant="secondary" onClick={() => onViewPublicPage('clinic', vet.clinicId!)}>
+                                    View Clinic Site
+                                </Button>
+                            )}
+                        </div>
+                    </Card>
+                )}
 
                 <Card>
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">Integrate on Your Existing Website</h2>

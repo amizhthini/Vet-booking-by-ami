@@ -80,10 +80,10 @@ const ClinicLandingPage: React.FC<ClinicLandingPageProps> = ({ clinicId, onBack 
     }
 
     return (
-    <div className="bg-white min-h-screen font-sans">
+    <div className="bg-white min-h-screen font-sans relative">
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         {onBack && (
-            <div className="absolute top-4 left-4 z-20">
+            <div className="absolute top-4 left-4 z-50">
                 <Button onClick={onBack} variant="secondary">&larr; Back to App</Button>
             </div>
         )}

@@ -12,7 +12,7 @@ export enum Page {
     // Vet Pages
     VetAppointments = 'My Appointments',
     Patients = 'Patients',
-    Website = 'My Website',
+    WebsiteManagement = 'My Website',
 
     // Clinic Pages
     ScheduleManagement = 'Schedule Management',

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import { useAuth } from '../hooks/useAuth';
-// FIX: 'Page' was imported as a type but is used as a value. Changed to a value import.
 import { Page } from '../types';
 import type { Referral, Pet, Vet, Appointment } from '../types';
 import { getReferrals, getPets, getVets, getAppointments, updateReferral } from '../services/mockDataService';
