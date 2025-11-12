@@ -42,11 +42,10 @@ const BookingModal: React.FC<BookingModalProps> = ({
   loggedInVet,
 }) => {
   const { user, login } = useAuth();
-  const initialStep = mode === 'reschedule' ? 3 : 1;
   const isCreateMode = mode === 'create';
   const isClinicAdmin = user?.role === 'Clinic Admin';
 
-  const [step, setStep] = useState(initialStep);
+  const [step, setStep] = useState(1);
   const [userPets, setUserPets] = useState<Pet[]>([]);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(appointmentToReschedule?.pet || null);
   const [selectedVet, setSelectedVet] = useState<Vet | null>(loggedInVet || appointmentToReschedule?.vet || vet || null);
@@ -88,11 +87,21 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      const initialStep = mode === 'reschedule' ? 3 : 1;
+      const initialVet = loggedInVet || appointmentToReschedule?.vet || vet || null;
+
       // Reset state on open/prop change
       setStep(initialStep);
       setSelectedPet(appointmentToReschedule?.pet || null);
-      setSelectedVet(loggedInVet || appointmentToReschedule?.vet || vet || null);
-      setSelectedService(null);
+      setSelectedVet(initialVet);
+
+      if (mode === 'reschedule' && appointmentToReschedule && initialVet?.services) {
+        const service = initialVet.services.find(s => s.name === appointmentToReschedule.service);
+        setSelectedService(service || null);
+      } else {
+        setSelectedService(null);
+      }
+      
       setSelectedDate(appointmentToReschedule?.date || '');
       setSelectedTime(appointmentToReschedule?.time || '');
       setCalculatedPrice(appointmentToReschedule?.price || null);
@@ -103,7 +112,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
       setNewPetName('');
       setNewPetBreed('');
     }
-  }, [isOpen, appointmentToReschedule, mode, initialStep, vet, loggedInVet]);
+  }, [isOpen, appointmentToReschedule, mode, vet, loggedInVet]);
   
    useEffect(() => {
     if (selectedService && selectedDate && selectedTime) {
