@@ -66,7 +66,8 @@ const VetLandingPage: React.FC<VetLandingPageProps> = ({ vetId, onBack }) => {
       
       {/* Hero Section */}
       <header className="bg-teal-600 text-white text-center py-20 relative">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
+        <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: `url(https://picsum.photos/seed/${vet.id}/1200/400)`}}></div>
+        <div className="absolute inset-0 bg-black opacity-40"></div>
         <div className="relative z-10">
             <img src={vet.imageUrl} alt={vet.name} className="w-40 h-40 rounded-full mx-auto mb-4 border-4 border-white shadow-lg" />
             <h1 className="text-5xl font-bold">{vet.name}</h1>
@@ -77,30 +78,33 @@ const VetLandingPage: React.FC<VetLandingPageProps> = ({ vetId, onBack }) => {
 
       <main className="container mx-auto p-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* About Section */}
+            {/* About & Services Section */}
             <div className="md:col-span-2 bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-3xl font-bold text-gray-800 mb-4">About Me</h2>
-                <p className="text-gray-600 leading-relaxed">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ac nisl ut augue blandit porta. Integer in ex id turpis euismod posuere. 
-                    Curabitur vel nisi et elit dignissim aliquam. Vivamus non magna vitae nisl aliquam fringilla. 
-                    <br/><br/>
-                    Fusce nec quam nec lorem finibus interdum. Proin in lorem vel justo consectetur fringilla. 
-                    Nulla facilisi. Cras id justo nec nunc lacinia tincidunt.
+                <p className="text-gray-600 leading-relaxed mb-8">
+                    With a deep passion for animal welfare and years of experience in {vet.specialty}, I am dedicated to providing the highest standard of care for your beloved pets. My approach combines compassionate treatment with the latest medical advancements to ensure the best possible outcomes.
                 </p>
+
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">Services &amp; Pricing</h2>
+                <div className="space-y-3">
+                    {vet.services && vet.services.length > 0 ? (
+                        vet.services.map(service => (
+                            <div key={service.name} className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                                <div>
+                                    <p className="font-semibold text-gray-700">{service.name}</p>
+                                    <p className="text-sm text-gray-500">{service.type}</p>
+                                </div>
+                                <p className="font-semibold text-teal-600">${service.basePrice.toFixed(2)}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-gray-500">Services and pricing information coming soon.</p>
+                    )}
+                </div>
             </div>
 
-            {/* Services & Schedule */}
+            {/* Schedule */}
             <div className="space-y-8">
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-3">My Services</h3>
-                    <ul className="list-disc list-inside text-gray-600 space-y-1">
-                        <li>{vet.specialty}</li>
-                        <li>General Wellness Exams</li>
-                        <li>Vaccinations</li>
-                        <li>Dental Care</li>
-                        <li>Surgical Procedures</li>
-                    </ul>
-                </div>
                  <div className="bg-white p-6 rounded-lg shadow-md">
                     <h3 className="text-2xl font-bold text-gray-800 mb-3">Weekly Schedule</h3>
                      <div className="space-y-2">

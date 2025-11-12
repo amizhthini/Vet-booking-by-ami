@@ -31,6 +31,9 @@ const VetCard: React.FC<VetCardProps> = ({ vet, onBook }) => {
             ))}
             <span className="text-gray-600 text-sm ml-2">{vet.rating} ({vet.reviewCount} reviews)</span>
           </div>
+           {vet.basePrice && (
+                <p className="text-sm text-gray-700 mt-2 font-semibold">Starts from ${vet.basePrice.toFixed(2)}</p>
+           )}
         </div>
         <div className="w-full sm:w-auto">
             <Button onClick={() => onBook(vet)} className="w-full sm:w-auto">Book Now</Button>

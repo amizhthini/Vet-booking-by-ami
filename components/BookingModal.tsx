@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import type { Vet, Pet, Appointment, Attachment, User } from '../types';
-import { ConsultationType } from '../types';
+import type { Vet, Pet, Appointment, Attachment, User, ConsultationService } from '../types';
 import { getPets, saveAppointment, updateAppointment, addPet } from '../services/mockDataService';
+import { calculateDynamicPrice } from '../services/pricingService';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
 import Spinner from './ui/Spinner';
@@ -42,7 +42,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   loggedInVet,
 }) => {
   const { user, login } = useAuth();
-  const initialStep = mode === 'reschedule' ? 2 : 1;
+  const initialStep = mode === 'reschedule' ? 3 : 1;
   const isCreateMode = mode === 'create';
   const isClinicAdmin = user?.role === 'Clinic Admin';
 
@@ -50,9 +50,10 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const [userPets, setUserPets] = useState<Pet[]>([]);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(appointmentToReschedule?.pet || null);
   const [selectedVet, setSelectedVet] = useState<Vet | null>(loggedInVet || appointmentToReschedule?.vet || vet || null);
-  const [selectedType, setSelectedType] = useState<ConsultationType | null>(appointmentToReschedule?.type || null);
+  const [selectedService, setSelectedService] = useState<ConsultationService | null>(null);
   const [selectedDate, setSelectedDate] = useState(appointmentToReschedule?.date || '');
   const [selectedTime, setSelectedTime] = useState(appointmentToReschedule?.time || '');
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
   const [userNotes, setUserNotes] = useState(appointmentToReschedule?.userNotes || '');
   const [attachments, setAttachments] = useState<Attachment[]>(appointmentToReschedule?.attachments || []);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,9 +92,10 @@ const BookingModal: React.FC<BookingModalProps> = ({
       setStep(initialStep);
       setSelectedPet(appointmentToReschedule?.pet || null);
       setSelectedVet(loggedInVet || appointmentToReschedule?.vet || vet || null);
-      setSelectedType(appointmentToReschedule?.type || null);
+      setSelectedService(null);
       setSelectedDate(appointmentToReschedule?.date || '');
       setSelectedTime(appointmentToReschedule?.time || '');
+      setCalculatedPrice(appointmentToReschedule?.price || null);
       setUserNotes(appointmentToReschedule?.userNotes || '');
       setAttachments(appointmentToReschedule?.attachments || []);
       setPetSearch('');
@@ -102,6 +104,15 @@ const BookingModal: React.FC<BookingModalProps> = ({
       setNewPetBreed('');
     }
   }, [isOpen, appointmentToReschedule, mode, initialStep, vet, loggedInVet]);
+  
+   useEffect(() => {
+    if (selectedService && selectedDate && selectedTime) {
+      const price = calculateDynamicPrice(selectedService.basePrice, selectedDate, selectedTime);
+      setCalculatedPrice(price);
+    } else {
+      setCalculatedPrice(null);
+    }
+  }, [selectedService, selectedDate, selectedTime]);
 
   const handleAddNewPet = async () => {
     if (!newPetName || !newPetBreed || !user) return;
@@ -119,6 +130,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
       setUserPets([newPet]);
       setSelectedPet(newPet);
       setShowAddPetForm(false);
+      setStep(2); // Automatically advance to service selection
     } catch (error) {
       console.error("Failed to add pet", error);
       onComplete({ success: false, error: 'Failed to add your pet. Please try again.' });
@@ -131,29 +143,28 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const handleFinalConfirm = async () => {
     const currentVet = isCreateMode ? selectedVet : (mode === 'reschedule' ? appointmentToReschedule?.vet : vet);
 
-    if (!currentVet || !selectedPet || !selectedType || !selectedDate || !selectedTime) return;
+    if (!currentVet || !selectedPet || !selectedService || !selectedDate || !selectedTime || !calculatedPrice) return;
 
     setIsLoading(true);
     try {
-      if (mode === 'reschedule' && appointmentToReschedule) {
-        const updatedData: Partial<Appointment> = {
+      const commonData = {
             date: selectedDate,
             time: selectedTime,
-            type: selectedType,
+            type: selectedService.type,
+            service: selectedService.name,
+            price: calculatedPrice,
             userNotes,
             attachments,
-        };
-        const updatedAppointment = await updateAppointment(appointmentToReschedule.id, updatedData);
+      };
+
+      if (mode === 'reschedule' && appointmentToReschedule) {
+        const updatedAppointment = await updateAppointment(appointmentToReschedule.id, commonData);
         onComplete({ success: true, data: updatedAppointment });
       } else { // Handles 'book' and 'create' modes
         const newAppointmentData = {
             pet: selectedPet,
             vet: currentVet,
-            type: selectedType,
-            date: selectedDate,
-            time: selectedTime,
-            userNotes,
-            attachments,
+            ...commonData
         };
         const newAppointment = await saveAppointment(newAppointmentData);
         onComplete({ success: true, data: newAppointment });
@@ -187,11 +198,11 @@ const BookingModal: React.FC<BookingModalProps> = ({
   // Handle unauthenticated user
   if (!user) {
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Please Log In">
+        <Modal isOpen={isOpen} onClose={onClose} title="Log In or Sign Up">
             <div className="text-center">
-                <p className="mb-4 text-gray-600">To book an appointment, please log in to your Pet Parent account.</p>
+                <p className="mb-4 text-gray-600">To book an appointment, please log in or create a free Pet Parent account on VetSync AI.</p>
                 <Button size="lg" className="w-full" onClick={() => login('Pet Parent')}>
-                    Login as Pet Parent
+                    Log In / Sign Up as Pet Parent
                 </Button>
             </div>
         </Modal>
@@ -224,6 +235,8 @@ const BookingModal: React.FC<BookingModalProps> = ({
             </div>
         );
     }
+    
+    const currentVetForServices = (isCreateMode ? selectedVet : vet);
     
     return (
         <div>
@@ -279,19 +292,32 @@ const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           )}
           
-          {/* Step 2: Select Consultation Type & Time */}
-          {step === 2 && (
+          {/* Step 2: Select Service */}
+           {step === 2 && (
             <div>
-              <h3 className="font-semibold text-lg mb-2">Consultation Type</h3>
-              <div className="flex space-x-2 mb-4">
-                {Object.values(ConsultationType).map(type => (
-                  <button key={type} onClick={() => setSelectedType(type)} className={`px-3 py-1.5 text-sm rounded-full border ${selectedType === type ? 'bg-teal-500 text-white border-teal-500' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                    {type}
-                  </button>
+              <h3 className="font-semibold text-lg mb-4">What service do you need?</h3>
+              <div className="space-y-2">
+                {currentVetForServices?.services?.map(service => (
+                  <div key={service.name} onClick={() => setSelectedService(service)} className={`p-4 border rounded-lg cursor-pointer flex justify-between items-center ${selectedService?.name === service.name ? 'border-teal-500 ring-2 ring-teal-500' : 'border-gray-200'}`}>
+                    <div>
+                      <p className="font-semibold">{service.name}</p>
+                      <p className="text-sm text-gray-500">{service.type}</p>
+                    </div>
+                    <p className="font-semibold text-gray-700">${service.basePrice.toFixed(2)}</p>
+                  </div>
                 ))}
               </div>
-              
-              <h3 className="font-semibold text-lg mb-2">Date & Time</h3>
+              <div className="mt-6 flex justify-between">
+                 <Button onClick={() => setStep(1)} variant="secondary">Back</Button>
+                <Button onClick={() => setStep(3)} disabled={!selectedService}>Next</Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Select Date & Time */}
+          {step === 3 && (
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Select Date & Time</h3>
               <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full p-2 border rounded-md mb-4" min={new Date().toISOString().split('T')[0]} />
 
               <div className="grid grid-cols-3 gap-2">
@@ -301,16 +327,24 @@ const BookingModal: React.FC<BookingModalProps> = ({
                   </button>
                 ))}
               </div>
+              
+              {calculatedPrice !== null && (
+                 <div className="mt-6 p-4 bg-teal-50 rounded-lg text-center">
+                    <p className="text-sm text-teal-800">Estimated Price</p>
+                    <p className="text-3xl font-bold text-teal-600">${calculatedPrice.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500 mt-1">Price is dynamic and based on demand.</p>
+                 </div>
+              )}
 
               <div className="mt-6 flex justify-between">
-                <Button onClick={() => setStep(1)} variant="secondary" disabled={mode === 'reschedule'}>Back</Button>
-                <Button onClick={() => setStep(3)} disabled={!selectedType || !selectedDate || !selectedTime}>Next</Button>
+                <Button onClick={() => setStep(2)} variant="secondary" disabled={mode === 'reschedule'}>Back</Button>
+                <Button onClick={() => setStep(4)} disabled={!selectedDate || !selectedTime}>Next</Button>
               </div>
             </div>
           )}
 
-          {/* Step 3: Add Details (Optional) */}
-          {step === 3 && selectedPet && (
+          {/* Step 4: Add Details (Optional) */}
+          {step === 4 && selectedPet && (
             <div>
                 <AddAppointmentDetailsForm 
                     petName={selectedPet.name}

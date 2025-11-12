@@ -12,6 +12,7 @@ export enum Page {
     // Vet Pages
     VetAppointments = 'My Appointments',
     Patients = 'Patients',
+    Website = 'My Website',
 
     // Clinic Pages
     ScheduleManagement = 'Schedule Management',
@@ -63,6 +64,12 @@ export type WeeklyAvailability = {
     [day in 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday']?: TimeSlot[];
 };
 
+export interface ConsultationService {
+    name: string;
+    basePrice: number;
+    type: ConsultationType;
+}
+
 export interface Vet {
     id: string;
     name: string;
@@ -73,6 +80,8 @@ export interface Vet {
     imageUrl: string;
     rating: number;
     reviewCount: number;
+    basePrice?: number;
+    services?: ConsultationService[];
     schedule?: CalendarEvent[];
     weeklyAvailability?: WeeklyAvailability;
 }
@@ -141,6 +150,8 @@ export interface Appointment {
     date: string;
     time: string;
     status: 'Upcoming' | 'Completed' | 'Cancelled' | 'Pending';
+    service?: string;
+    price?: number;
     notes?: SoapNote;
     userNotes?: string;
     attachments?: Attachment[];

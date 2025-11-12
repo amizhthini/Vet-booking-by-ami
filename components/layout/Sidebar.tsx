@@ -7,6 +7,7 @@ import {
     UsersGroupIcon, DatabaseIcon, CogIcon 
 } from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
+import { ArrowTopRightOnSquareIcon } from '../../constants';
 
 interface SidebarProps {
   currentPage: Page;
@@ -55,6 +56,7 @@ const VetNav: React.FC<SidebarProps> = (props) => (
     <NavItem page={Page.Dashboard} {...props} icon={<DashboardIcon />} />
     <NavItem page={Page.VetAppointments} {...props} icon={<CalendarIcon />} />
     <NavItem page={Page.Patients} {...props} icon={<PetIcon />} />
+    <NavItem page={Page.Website} {...props} icon={<ArrowTopRightOnSquareIcon />} />
     <NavItem page={Page.Referrals} {...props} icon={<ArrowRightCircleIcon />} />
     <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
     <NavItem page={Page.DocManagement} {...props} icon={<DocumentPlusIcon />} />

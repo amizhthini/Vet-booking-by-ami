@@ -143,7 +143,7 @@ export const confirmAppointmentPayment = (appointmentId: string): Promise<Appoin
     return updateAppointment(appointmentId, { status: 'Upcoming' });
 }
 
-export const updateAppointment = (appointmentId: string, updatedData: Partial<Appointment>): Promise<Appointment> => {
+export const updateAppointment = (appointmentId: string, updatedData: Partial<Omit<Appointment, 'id'>>): Promise<Appointment> => {
     const appointments = initializeData<Appointment>(LS_APPOINTMENTS_KEY, []);
     let updatedAppointment: Appointment | undefined;
     const updatedAppointments = appointments.map(appt => {
@@ -232,6 +232,8 @@ export const autoBookFollowUp = async (
         type: ConsultationType.InPerson, // Default to In-Person for follow-ups
         date: followUp.date,
         time: finalTime,
+        service: 'Follow-up Consultation',
+        price: targetVet.basePrice ? targetVet.basePrice * 0.8 : 50, // Example: 20% discount for follow-ups
     };
 
     const newAppointment = await saveAppointment(newAppointmentData, 'Pending');

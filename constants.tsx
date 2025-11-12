@@ -61,6 +61,13 @@ export const VETS: Vet[] = [
         imageUrl: 'https://picsum.photos/seed/drcarter/200', 
         rating: 4.9, 
         reviewCount: 124,
+        basePrice: 40,
+        services: [
+            { name: 'General Checkup', basePrice: 75, type: ConsultationType.InPerson },
+            { name: 'Vaccination Visit', basePrice: 50, type: ConsultationType.InPerson },
+            { name: 'Virtual Follow-up', basePrice: 40, type: ConsultationType.Virtual },
+            { name: 'Tele-advice', basePrice: 45, type: ConsultationType.Call },
+        ],
         schedule: [
             { id: 'e1', date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0], title: '10:00 AM - Buddy', type: 'appointment'},
             { id: 'e2', date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0], title: '11:00 AM - Max', type: 'appointment'},
@@ -74,8 +81,8 @@ export const VETS: Vet[] = [
             Friday: [{ startTime: '10:00', endTime: '16:00' }],
         }
     },
-    { id: 'v2', name: 'Dr. Johnathan Lee', specialty: 'Orthopedic Surgery', clinicId: 'c2', clinicName: 'Advanced Pet Care', location: 'San Francisco, CA', imageUrl: 'https://picsum.photos/seed/drlee/200', rating: 4.8, reviewCount: 98 },
-    { id: 'v3', name: 'Dr. Sarah Chen', specialty: 'Dermatology', clinicName: 'Independent', location: 'Chicago, IL', imageUrl: 'https://picsum.photos/seed/drchen/200', rating: 5.0, reviewCount: 76 },
+    { id: 'v2', name: 'Dr. Johnathan Lee', specialty: 'Orthopedic Surgery', clinicId: 'c2', clinicName: 'Advanced Pet Care', location: 'San Francisco, CA', imageUrl: 'https://picsum.photos/seed/drlee/200', rating: 4.8, reviewCount: 98, basePrice: 150, services: [ { name: 'Surgical Consultation', basePrice: 150, type: ConsultationType.InPerson } ] },
+    { id: 'v3', name: 'Dr. Sarah Chen', specialty: 'Dermatology', clinicName: 'Independent', location: 'Chicago, IL', imageUrl: 'https://picsum.photos/seed/drchen/200', rating: 5.0, reviewCount: 76, basePrice: 90, services: [ { name: 'Dermatology Consult', basePrice: 90, type: ConsultationType.InPerson }, { name: 'Allergy Testing', basePrice: 120, type: ConsultationType.InPerson } ]},
     { 
         id: 'v4', 
         name: 'Dr. Michael Ramirez', 
@@ -86,6 +93,11 @@ export const VETS: Vet[] = [
         imageUrl: 'https://picsum.photos/seed/drramirez/200', 
         rating: 4.7, 
         reviewCount: 110,
+        basePrice: 180,
+        services: [
+            { name: 'Cardiology Initial Consult', basePrice: 180, type: ConsultationType.InPerson },
+            { name: 'Echocardiogram', basePrice: 250, type: ConsultationType.InPerson },
+        ],
         schedule: [
              { id: 'e5', date: new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0], title: 'Conference', type: 'blocked'},
              { id: 'e6', date: new Date(new Date().setDate(new Date().getDate() + 8)).toISOString().split('T')[0], title: 'Follow-up Calls', type: 'blocked'},
@@ -106,6 +118,10 @@ export const VETS: Vet[] = [
         imageUrl: 'https://picsum.photos/seed/drdavid/200', 
         rating: 4.9, 
         reviewCount: 88,
+        basePrice: 200,
+        services: [
+             { name: 'Oncology Consultation', basePrice: 200, type: ConsultationType.InPerson }
+        ],
         schedule: [
             { id: 'e8', date: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0], title: 'Admin Time', type: 'blocked' },
             { id: 'e9', date: new Date(new Date().setDate(new Date().getDate() + 6)).toISOString().split('T')[0], title: '10:00 AM - Whiskers', type: 'appointment' },
@@ -125,7 +141,11 @@ export const VETS: Vet[] = [
         location: 'San Francisco, CA', 
         imageUrl: 'https://picsum.photos/seed/drmartinez/200', 
         rating: 4.8, 
-        reviewCount: 65 
+        reviewCount: 65,
+        basePrice: 190,
+        services: [
+            { name: 'Neurology Consultation', basePrice: 190, type: ConsultationType.InPerson }
+        ]
     },
 ];
 
@@ -137,7 +157,9 @@ export const APPOINTMENTS: Appointment[] = [
         type: ConsultationType.Virtual,
         date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0],
         time: '10:00 AM',
-        status: 'Upcoming'
+        status: 'Upcoming',
+        service: 'Virtual Follow-up',
+        price: 40.00,
     },
     {
         id: 'a2',
@@ -146,7 +168,9 @@ export const APPOINTMENTS: Appointment[] = [
         type: ConsultationType.InPerson,
         date: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0],
         time: '02:30 PM',
-        status: 'Upcoming'
+        status: 'Upcoming',
+        service: 'Dermatology Consult',
+        price: 99.00,
     },
      {
         id: 'a3',
@@ -156,6 +180,8 @@ export const APPOINTMENTS: Appointment[] = [
         date: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString().split('T')[0],
         time: '09:00 AM',
         status: 'Completed',
+        service: 'Surgical Consultation',
+        price: 150.00,
         notes: {
             subjective: "Owner reports Buddy has been limping on his right hind leg for 3 days, especially after rest. No known trauma. Appetite and energy levels are normal.",
             objective: "Mild swelling noted in the right stifle joint. Pain on full extension of the hip. Gait analysis shows a moderate, weight-bearing limp. No crepitus detected.",
@@ -189,6 +215,8 @@ export const APPOINTMENTS: Appointment[] = [
         date: new Date(new Date().setDate(new Date().getDate() - 25)).toISOString().split('T')[0],
         time: '11:00 AM',
         status: 'Completed',
+        service: 'General Checkup',
+        price: 75.00,
         notes: {
             subjective: "Owner reports Max has been showing signs of stiffness, particularly in the mornings. Difficulty getting up after long periods of rest.",
             objective: "Physical exam reveals decreased range of motion in both hips. Mild muscle atrophy in the hind limbs. Positive Ortolani sign is absent. Crepitus noted on hip manipulation.",
@@ -211,7 +239,9 @@ export const APPOINTMENTS: Appointment[] = [
         type: ConsultationType.InPerson,
         date: new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0],
         time: '03:00 PM',
-        status: 'Pending'
+        status: 'Pending',
+        service: 'Oncology Consultation',
+        price: 220.00
     },
 ];
 

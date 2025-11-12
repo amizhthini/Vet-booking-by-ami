@@ -27,6 +27,7 @@ import SettingsPage from './pages/SettingsPage';
 import ClinicProfilePage from './pages/ClinicProfilePage';
 import VetLandingPage from './pages/VetLandingPage';
 import ClinicLandingPage from './pages/ClinicLandingPage';
+import WebsiteManagementPage from './pages/WebsiteManagementPage';
 import type { Appointment, Pet, Vet } from './types';
 import { Page, Role } from './types';
 import { AuthProvider } from './contexts/AuthContext';
@@ -176,6 +177,8 @@ const AppContent: React.FC = () => {
         return loggedInVet ? <VetAppointmentsPage vet={loggedInVet} startConsultation={startConsultation} /> : <PlaceholderPage title="Loading Appointments..." />;
       case Page.Patients:
         return loggedInVet ? <VetPatientsPage vet={loggedInVet} viewPetProfile={viewPetProfile} /> : <PlaceholderPage title="Loading Patients..." />;
+      case Page.Website:
+        return loggedInVet ? <WebsiteManagementPage vet={loggedInVet} /> : <PlaceholderPage title="Loading..." />;
       case Page.Templates:
         return <TemplatesPage />;
       case Page.StaffManagement:

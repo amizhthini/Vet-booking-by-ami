@@ -70,7 +70,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             <div className="flex items-center space-x-4">
                 <img src={appointment.pet.imageUrl} alt={appointment.pet.name} className="w-16 h-16 rounded-full object-cover" />
                 <div>
-                    <h3 className="text-lg font-bold text-gray-800">{appointment.pet.name}'s {appointment.type}</h3>
+                    <h3 className="text-lg font-bold text-gray-800">{appointment.service || appointment.type} for {appointment.pet.name}</h3>
                     <p className="text-sm text-gray-600">with {appointment.vet.name}</p>
                     <div className="flex items-center text-sm text-gray-500 mt-1">
                         <CalendarIcon className="w-4 h-4 mr-1.5" />
@@ -79,9 +79,12 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 </div>
             </div>
             <div className="mt-4 sm:mt-0 flex flex-col sm:items-end space-y-2">
-                <span className={`px-3 py-1 text-sm font-semibold rounded-full ${statusStyles[status]}`}>
-                    {appointment.status}
-                </span>
+                <div className="flex items-center space-x-3">
+                    {appointment.price && <span className="text-lg font-bold text-gray-800">${appointment.price.toFixed(2)}</span>}
+                    <span className={`px-3 py-1 text-sm font-semibold rounded-full ${statusStyles[status]}`}>
+                        {appointment.status}
+                    </span>
+                </div>
                 {(isUpcoming || isPending) && (
                      <div className="flex items-center flex-wrap justify-end gap-2 pt-2">
                         {isPending && onConfirmPayment && (
