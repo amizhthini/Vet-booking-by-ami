@@ -30,11 +30,16 @@ const FollowUpViewer: React.FC<{ followUp: FollowUp }> = ({ followUp }) => (
     <div>
         <h4 className="font-bold text-teal-700 text-sm uppercase tracking-wider">Next Appointment</h4>
         <p className="text-gray-600 mt-1">
-            <strong>Date:</strong> {new Date(followUp.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            <strong>Date:</strong> {new Date(followUp.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {followUp.time}
         </p>
         <p className="text-gray-600 mt-1">
             <strong>Reason:</strong> {followUp.reason}
         </p>
+        {followUp.referredVetName && (
+             <p className="text-gray-600 mt-1">
+                <strong>Referred to:</strong> {followUp.referredVetName}
+            </p>
+        )}
     </div>
 );
 
@@ -47,7 +52,7 @@ const CompletedAppointmentDetails: React.FC<CompletedAppointmentDetailsProps> = 
     
     const tabs = ['Consultation Notes'];
     if (appointment.prescriptions && appointment.prescriptions.length > 0) tabs.push('Prescriptions');
-    if (appointment.followUp) tabs.push('Follow-up');
+    if (appointment.notes?.followUp) tabs.push('Follow-up');
 
     return (
         <div className="mt-4 pt-4 border-t">
@@ -59,8 +64,8 @@ const CompletedAppointmentDetails: React.FC<CompletedAppointmentDetailsProps> = 
                 {activeTab === 'Prescriptions' && appointment.prescriptions && (
                     <PrescriptionViewer prescriptions={appointment.prescriptions} />
                 )}
-                {activeTab === 'Follow-up' && appointment.followUp && (
-                    <FollowUpViewer followUp={appointment.followUp} />
+                {activeTab === 'Follow-up' && appointment.notes?.followUp && (
+                    <FollowUpViewer followUp={appointment.notes.followUp} />
                 )}
             </div>
         </div>

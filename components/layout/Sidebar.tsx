@@ -1,6 +1,11 @@
 import React from 'react';
 import { Page, Role } from '../../types';
-import { DashboardIcon, VetsIcon, CalendarIcon, PetIcon, UsersIcon, BuildingOfficeIcon, FolderOpenIcon, ClockIcon, DocumentChartBarIcon, DocumentPlusIcon } from '../../constants';
+import { 
+    DashboardIcon, VetsIcon, CalendarIcon, PetIcon, UsersIcon, 
+    BuildingOfficeIcon, FolderOpenIcon, ClockIcon, DocumentChartBarIcon, 
+    DocumentPlusIcon, ArrowRightCircleIcon, TemplateIcon, CurrencyDollarIcon, 
+    UsersGroupIcon, DatabaseIcon, CogIcon 
+} from '../../constants';
 import { useAuth } from '../../hooks/useAuth';
 
 interface SidebarProps {
@@ -37,29 +42,42 @@ const PetParentNav: React.FC<SidebarProps> = (props) => (
     <NavItem page={Page.Vets} {...props} icon={<VetsIcon />} />
     <NavItem page={Page.Appointments} {...props} icon={<CalendarIcon />} />
     <NavItem page={Page.MyPets} {...props} icon={<PetIcon />} />
+    <NavItem page={Page.Referrals} {...props} icon={<ArrowRightCircleIcon />} />
     <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
     <NavItem page={Page.DocManagement} {...props} icon={<DocumentPlusIcon />} />
+    <NavItem page={Page.Financials} {...props} icon={<CurrencyDollarIcon />} />
+    <NavItem page={Page.Settings} {...props} icon={<CogIcon />} />
   </ul>
 );
 
 const VetNav: React.FC<SidebarProps> = (props) => (
   <ul>
     <NavItem page={Page.Dashboard} {...props} icon={<DashboardIcon />} />
-    <NavItem page={Page.Schedule} {...props} icon={<CalendarIcon />} />
+    <NavItem page={Page.VetAppointments} {...props} icon={<CalendarIcon />} />
     <NavItem page={Page.Patients} {...props} icon={<PetIcon />} />
+    <NavItem page={Page.Referrals} {...props} icon={<ArrowRightCircleIcon />} />
     <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
     <NavItem page={Page.DocManagement} {...props} icon={<DocumentPlusIcon />} />
+    <NavItem page={Page.Templates} {...props} icon={<TemplateIcon />} />
+    <NavItem page={Page.Financials} {...props} icon={<CurrencyDollarIcon />} />
+    <NavItem page={Page.Settings} {...props} icon={<CogIcon />} />
   </ul>
 );
 
 const ClinicNav: React.FC<SidebarProps> = (props) => (
     <ul>
       <NavItem page={Page.Dashboard} {...props} icon={<DashboardIcon />} />
-      <NavItem page={Page.VetManagement} {...props} icon={<VetsIcon />} />
       <NavItem page={Page.ScheduleManagement} {...props} icon={<ClockIcon />} />
       <NavItem page={Page.PatientRecords} {...props} icon={<FolderOpenIcon />} />
+      <NavItem page={Page.VetManagement} {...props} icon={<VetsIcon />} />
+      <NavItem page={Page.StaffManagement} {...props} icon={<UsersGroupIcon />} />
+      <NavItem page={Page.Referrals} {...props} icon={<ArrowRightCircleIcon />} />
       <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
       <NavItem page={Page.DocManagement} {...props} icon={<DocumentPlusIcon />} />
+      <NavItem page={Page.Templates} {...props} icon={<TemplateIcon />} />
+      <NavItem page={Page.Financials} {...props} icon={<CurrencyDollarIcon />} />
+      <NavItem page={Page.MasterData} {...props} icon={<DatabaseIcon />} />
+      <NavItem page={Page.Settings} {...props} icon={<CogIcon />} />
     </ul>
 );
 

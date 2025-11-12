@@ -30,6 +30,17 @@ const soapNoteSchema = {
             type: Type.STRING,
             description: "The course of action, including treatments, further diagnostic tests, medications, and follow-up instructions for the owner.",
         },
+        followUp: {
+            type: Type.OBJECT,
+            description: "Details for a follow-up appointment, if mentioned. If no follow-up is discussed, this can be omitted.",
+            properties: {
+                date: { type: Type.STRING, description: "The suggested date for the follow-up, formatted as YYYY-MM-DD. Handle relative dates like 'next Friday'." },
+                time: { type: Type.STRING, description: "The suggested time for the follow-up, formatted as 'HH:mm AM/PM'." },
+                reason: { type: Type.STRING, description: "The reason for the follow-up." },
+                referredVetName: { type: Type.STRING, description: "The full name of a specialist referred to, if any." }
+            },
+            required: ["date", "time", "reason"]
+        }
     },
     required: ["subjective", "objective", "assessment", "plan"],
 };
@@ -39,7 +50,7 @@ export const generateSoapNotesFromTranscript = async (transcript: string): Promi
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: `Based on the following veterinary consultation transcript, please generate a structured SOAP note. Extract the relevant information and format it correctly into the Subjective, Objective, Assessment, and Plan sections.\n\nTranscript:\n"""\n${transcript}\n"""`,
+            contents: `Based on the following veterinary consultation transcript, please generate a structured SOAP note. Extract the relevant information and format it correctly into the Subjective, Objective, Assessment, and Plan sections. If a follow-up appointment is mentioned, extract the suggested date, time, reason, and the full name of any specialist the patient is being referred to.`,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: soapNoteSchema,
@@ -49,6 +60,7 @@ export const generateSoapNotesFromTranscript = async (transcript: string): Promi
         const jsonText = response.text.trim();
         const parsedJson = JSON.parse(jsonText);
         
+        // Basic validation
         if (
             'subjective' in parsedJson &&
             'objective' in parsedJson &&

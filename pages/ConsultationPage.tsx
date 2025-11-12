@@ -7,10 +7,11 @@ import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { generateSoapNotesFromTranscript } from '../services/geminiService';
-import { updateAppointment } from '../services/mockDataService';
+import { updateAppointment, autoBookFollowUp } from '../services/mockDataService';
 import { MOCK_TRANSCRIPT } from '../constants';
 import SoapNotesViewer from '../components/SoapNotesViewer';
 import { MicrophoneIcon, StopIcon } from '../constants';
+import Toast from '../components/ui/Toast';
 
 interface ConsultationPageProps {
   appointment: Appointment;
@@ -22,6 +23,8 @@ const ConsultationPage: React.FC<ConsultationPageProps> = ({ appointment, naviga
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedNotes, setGeneratedNotes] = useState<SoapNote | null>(appointment.notes || null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
 
   const handleGenerateNotes = async () => {
     // In a real app, you would use a speech-to-text API on audioResult.audioBlob.
@@ -38,6 +41,24 @@ const ConsultationPage: React.FC<ConsultationPageProps> = ({ appointment, naviga
         const notes = await generateSoapNotesFromTranscript(MOCK_TRANSCRIPT);
         setGeneratedNotes(notes);
         await updateAppointment(appointment.id, { notes });
+
+        if (notes.followUp) {
+            try {
+                const newAppointment = await autoBookFollowUp(appointment.pet, appointment.vet, notes.followUp);
+                if (newAppointment) {
+                    setToast({ 
+                        message: `Follow-up for ${newAppointment.pet.name} automatically booked with ${newAppointment.vet.name} on ${newAppointment.date} at ${newAppointment.time}.`, 
+                        type: 'success' 
+                    });
+                } else {
+                     setToast({ message: 'A follow-up was suggested, but no available slots were found.', type: 'error' });
+                }
+            } catch (bookingError: any) {
+                console.error("Auto-booking failed:", bookingError);
+                setToast({ message: `Follow-up booking failed: ${bookingError.message}`, type: 'error' });
+            }
+        }
+
     } catch (err: any) {
         setApiError(err.message || "An unknown error occurred.");
     } finally {
@@ -47,6 +68,7 @@ const ConsultationPage: React.FC<ConsultationPageProps> = ({ appointment, naviga
 
   return (
     <PageWrapper title={`Consultation for ${appointment.pet.name}`}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card>
           <h2 className="text-xl font-bold mb-4">Consultation Controls</h2>

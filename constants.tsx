@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Vet, Pet, Appointment, PetOwner, Report } from './types';
+import type { Vet, Pet, Appointment, PetOwner, Report, Referral } from './types';
 import { ConsultationType } from './types';
 
 export const PET_OWNERS: PetOwner[] = [
@@ -160,16 +160,17 @@ export const APPOINTMENTS: Appointment[] = [
             subjective: "Owner reports Buddy has been limping on his right hind leg for 3 days, especially after rest. No known trauma. Appetite and energy levels are normal.",
             objective: "Mild swelling noted in the right stifle joint. Pain on full extension of the hip. Gait analysis shows a moderate, weight-bearing limp. No crepitus detected.",
             assessment: "Provisional diagnosis: Suspected cranial cruciate ligament strain or early-stage hip dysplasia. Rule out soft tissue injury.",
-            plan: "Prescribed strict rest for 1 week. Start NSAID trial (Carprofen 50mg BID). Schedule follow-up appointment in 7-10 days. If no improvement, recommend radiographs of the hip and stifle joints."
+            plan: "Prescribed strict rest for 1 week. Start NSAID trial (Carprofen 50mg BID). Schedule follow-up appointment in 7-10 days. If no improvement, recommend radiographs of the hip and stifle joints.",
+            followUp: {
+                date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString().split('T')[0],
+                time: '10:00 AM',
+                reason: "Re-check limping in 7-10 days. Schedule radiographs if no improvement."
+            }
         },
         prescriptions: [
             { medication: 'Carprofen', dosage: '50mg', frequency: 'Twice daily' },
             { medication: 'Joint Supplement', dosage: '1 chew', frequency: 'Once daily' }
         ],
-        followUp: {
-            date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString().split('T')[0],
-            reason: "Re-check limping in 7-10 days. Schedule radiographs if no improvement."
-        }
     },
     {
         id: 'a4',
@@ -192,15 +193,25 @@ export const APPOINTMENTS: Appointment[] = [
             subjective: "Owner reports Max has been showing signs of stiffness, particularly in the mornings. Difficulty getting up after long periods of rest.",
             objective: "Physical exam reveals decreased range of motion in both hips. Mild muscle atrophy in the hind limbs. Positive Ortolani sign is absent. Crepitus noted on hip manipulation.",
             assessment: "Chronic osteoarthritis secondary to hip dysplasia.",
-            plan: "Continue Galliprant as needed for pain management. Recommend starting joint supplements (glucosamine/chondroitin). Discussed weight management and low-impact exercise like swimming. Recheck in 3 months or sooner if signs worsen."
+            plan: "Continue Galliprant as needed for pain management. Recommend starting joint supplements (glucosamine/chondroitin). Discussed weight management and low-impact exercise like swimming. Recheck in 3 months or sooner if signs worsen.",
+            followUp: {
+                date: new Date(new Date().setDate(new Date().getDate() + 65)).toISOString().split('T')[0],
+                time: '11:00 AM',
+                reason: "Re-check in 3 months or sooner if signs of stiffness worsen."
+            }
         },
         prescriptions: [
             { medication: 'Galliprant', dosage: 'As needed', frequency: 'For pain' }
         ],
-        followUp: {
-            date: new Date(new Date().setDate(new Date().getDate() + 65)).toISOString().split('T')[0],
-            reason: "Re-check in 3 months or sooner if signs of stiffness worsen."
-        }
+    },
+    {
+        id: 'a6',
+        pet: PETS[2],
+        vet: VETS[4],
+        type: ConsultationType.InPerson,
+        date: new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0],
+        time: '03:00 PM',
+        status: 'Pending'
     },
 ];
 
@@ -247,7 +258,21 @@ export const REPORTS: Report[] = [
     }
 ];
 
-export const MOCK_TRANSCRIPT = "Okay, Mrs. Davis, so you're saying Buddy has been limping for about three days now? And it's his right hind leg... I see. Is it worse after he gets up from lying down? Yes, that's typical. Okay, I'm just going to examine him. He seems a little sensitive when I extend the hip fully, and I can see a bit of swelling around his knee, or the stifle joint. His gait is definitely off. I don't feel any clicking or grinding, which is good. For now, let's call it a suspected ligament strain. I want him on strict rest for the next week - no running or jumping. I'll prescribe an anti-inflammatory, Carprofen, twice a day. Let's schedule a recheck in about a week, and if he's not better, we'll need to get some x-rays to get a better look at what's going on in there.";
+export const REFERRALS: Referral[] = [
+    {
+        id: 'ref1',
+        pet: PETS[0], // Buddy
+        fromVet: VETS[1], // Dr. Lee
+        toVet: VETS[2], // Dr. Chen (Dermatology)
+        appointmentId: 'a3',
+        notes: "Buddy has a persistent skin issue on his paw that isn't responding to initial treatment. Please assess for potential allergies or dermatological conditions. See attached notes from appointment a3.",
+        date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
+        status: 'Pending',
+    }
+];
+
+
+export const MOCK_TRANSCRIPT = "Okay, Mrs. Davis, so you're saying Buddy has been limping for about three days now? And it's his right hind leg... I see. Is it worse after he gets up from lying down? Yes, that's typical. Okay, I'm just going to examine him. He seems a little sensitive when I extend the hip fully, and I can see a bit of swelling around his knee, or the stifle joint. His gait is definitely off. I don't feel any clicking or grinding, which is good. For now, let's call it a suspected ligament strain. I want him on strict rest for the next week - no running or jumping. I'll prescribe an anti-inflammatory, Carprofen, twice a day. If he's not better, we'll need to get some x-rays. Let's schedule a follow-up appointment to discuss this for next Friday at 2:00 PM. I also want to refer you to Dr. Sarah Chen for that skin issue.";
 
 // SVG Icons
 export const CalendarIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -333,5 +358,48 @@ export const FolderOpenIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export const ClockIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+export const ArrowRightCircleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+
+export const BellIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+    </svg>
+);
+
+export const TemplateIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+);
+
+export const CurrencyDollarIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182.95-.715 2.251-.93 3.342-.93.596 0 1.175.12 1.729.344" />
+    </svg>
+);
+
+export const UsersGroupIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962c.57-1.023 1.524-1.85 2.673-2.332m-2.673 2.332L6.116 16.67M6.116 16.67a3 3 0 00-4.682 2.72 9.094 9.094 0 003.741.479m11.336-4.996c.57-1.023 1.524-1.85 2.673-2.332m-2.673 2.332L12.116 12.67M12.116 12.67a3 3 0 00-4.682-2.72m-7.5 2.962c.57-1.023 1.524-1.85 2.673-2.332M12 6.75a3 3 0 11-6 0 3 3 0 016 0zM12 18a3 3 0 100-6 3 3 0 000 6z" />
+    </svg>
+);
+
+export const DatabaseIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12.75v-1.5a3.75 3.75 0 117.5 0v1.5m-7.5 0h7.5m-7.5 0a3.75 3.75 0 107.5 0m-7.5 0h7.5m-7.5 0a3.75 3.75 0 107.5 0M20.25 15.75v-1.5a3.75 3.75 0 10-7.5 0v1.5m7.5 0h-7.5m7.5 0a3.75 3.75 0 11-7.5 0m7.5 0h-7.5m7.5 0a3.75 3.75 0 11-7.5 0" />
+    </svg>
+);
+
+export const CogIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m18 0h-1.5m-15 0a7.5 7.5 0 1115 0m-15 0H3m18 0h-1.5m-15 0a7.5 7.5 0 1115 0m-15 0H3m18 0h-1.5" />
     </svg>
 );

@@ -13,14 +13,25 @@ import VetManagementPage from './pages/VetManagementPage';
 import VetProfilePage from './pages/VetProfilePage';
 import ScheduleManagementPage from './pages/ScheduleManagementPage';
 import VetPatientsPage from './pages/VetPatientsPage';
+import VetAppointmentsPage from './pages/VetAppointmentsPage';
 import ClinicSchedulePage from './pages/ClinicSchedulePage';
 import ReportsPage from './pages/ReportsPage';
 import DocManagementPage from './pages/DocManagementPage';
+import ReferralsPage from './pages/ReferralsPage';
+import MyPetsPage from './pages/MyPetsPage';
+import TemplatesPage from './pages/TemplatesPage';
+import FinancialsPage from './pages/FinancialsPage';
+import StaffManagementPage from './pages/StaffManagementPage';
+import MasterDataPage from './pages/MasterDataPage';
+import SettingsPage from './pages/SettingsPage';
 import type { Appointment, Pet, Vet } from './types';
 import { Page, Role } from './types';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './hooks/useAuth';
-import { getVets } from './services/mockDataService';
+import { getVets, getAppointments } from './services/mockDataService';
+import AppointmentNotifier from './components/AppointmentNotifier';
+import AppointmentStartModal from './components/AppointmentStartModal';
+import Toast from './components/ui/Toast';
 
 
 const AppContent: React.FC = () => {
@@ -30,13 +41,22 @@ const AppContent: React.FC = () => {
   const [activePet, setActivePet] = useState<Pet | null>(null);
   const [activeVet, setActiveVet] = useState<Vet | null>(null);
   const [loggedInVet, setLoggedInVet] = useState<Vet | null>(null);
+  
+  // State for global notifications
+  const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
+  const [toastInfo, setToastInfo] = useState<{ id: number, message: string; type: 'success' | 'error' } | null>(null);
+  const [modalAppointment, setModalAppointment] = useState<Appointment | null>(null);
 
   useEffect(() => {
-    if (user?.role === 'Veterinarian' && user.id) {
-        getVets().then(vets => {
-            const currentVet = vets.find(v => v.id === user.id);
-            setLoggedInVet(currentVet || null);
-        });
+    if (user) {
+        getAppointments().then(setAllAppointments).catch(console.error);
+        
+        if (user.role === 'Veterinarian' && user.id) {
+            getVets().then(vets => {
+                const currentVet = vets.find(v => v.id === user.id);
+                setLoggedInVet(currentVet || null);
+            });
+        }
     }
   }, [user]);
 
@@ -59,6 +79,22 @@ const AppContent: React.FC = () => {
     setCurrentPage(Page.VetProfile);
   }, []);
 
+  const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+    setToastInfo({ id: Date.now(), message, type });
+  }, []);
+
+  const showStartModal = useCallback((appointment: Appointment) => {
+    setModalAppointment(appointment);
+  }, []);
+  
+  const handleJoinConsultation = useCallback(() => {
+    if (modalAppointment) {
+      startConsultation(modalAppointment);
+      setModalAppointment(null);
+    }
+  }, [modalAppointment, startConsultation]);
+
+
   if (!user) {
     return <LoginPage />;
   }
@@ -72,6 +108,8 @@ const AppContent: React.FC = () => {
         return <VetsPage navigateTo={navigateTo} />;
       case Page.Appointments:
         return <AppointmentsPage startConsultation={startConsultation} />;
+      case Page.MyPets:
+        return <MyPetsPage navigateTo={navigateTo} />;
       case Page.Consultation:
         return activeAppointment ? <ConsultationPage appointment={activeAppointment} navigateTo={navigateTo} /> : <DashboardPage navigateTo={navigateTo} startConsultation={startConsultation}/>;
       
@@ -80,6 +118,12 @@ const AppContent: React.FC = () => {
         return <ReportsPage />;
       case Page.DocManagement:
         return <DocManagementPage />;
+      case Page.Referrals:
+        return <ReferralsPage navigateTo={navigateTo} />;
+      case Page.Financials:
+        return <FinancialsPage />;
+      case Page.Settings:
+        return <SettingsPage />;
 
       // Clinic Admin Pages
       case Page.PatientRecords:
@@ -92,10 +136,17 @@ const AppContent: React.FC = () => {
         return activeVet ? <VetProfilePage vet={activeVet} navigateTo={navigateTo} /> : <VetManagementPage viewVetProfile={viewVetProfile} />;
       
       // Vet Pages
-      case Page.Schedule:
-        return loggedInVet ? <ScheduleManagementPage vet={loggedInVet} /> : <PlaceholderPage title="Loading Schedule..." />;
+      case Page.VetAppointments:
+        return loggedInVet ? <VetAppointmentsPage vet={loggedInVet} startConsultation={startConsultation} /> : <PlaceholderPage title="Loading Appointments..." />;
       case Page.Patients:
         return loggedInVet ? <VetPatientsPage vet={loggedInVet} viewPetProfile={viewPetProfile} /> : <PlaceholderPage title="Loading Patients..." />;
+      case Page.Templates:
+        return <TemplatesPage />;
+      case Page.StaffManagement:
+        return <StaffManagementPage />;
+      case Page.MasterData:
+        return <MasterDataPage />;
+
 
       // Clinic Admin Page
       case Page.ScheduleManagement:
@@ -104,7 +155,6 @@ const AppContent: React.FC = () => {
       // Other placeholders
       case Page.ClinicManagement:
       case Page.UserManagement:
-      case Page.MyPets:
         return <PlaceholderPage title={currentPage} />;
 
       default:
@@ -121,6 +171,18 @@ const AppContent: React.FC = () => {
           {renderPage()}
         </main>
       </div>
+      <AppointmentNotifier
+        appointments={allAppointments}
+        onShowToast={showToast}
+        onShowStartModal={showStartModal}
+      />
+      {toastInfo && <Toast key={toastInfo.id} message={toastInfo.message} type={toastInfo.type} onClose={() => setToastInfo(null)} />}
+      <AppointmentStartModal
+        isOpen={!!modalAppointment}
+        appointment={modalAppointment}
+        onClose={() => setModalAppointment(null)}
+        onJoin={handleJoinConsultation}
+      />
     </div>
   );
 }

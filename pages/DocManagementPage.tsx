@@ -7,7 +7,7 @@ import Modal from '../components/ui/Modal';
 import Toast from '../components/ui/Toast';
 import { getPets, getVets, addReport } from '../services/mockDataService';
 import { analyzeDocument } from '../services/geminiService';
-import type { Pet, Vet, Report } from '../types';
+import type { Pet, Vet, Report, ConsultationReport, PrescriptionReport, PawScanReport } from '../types';
 import { useAuth } from '../hooks/useAuth';
 
 type LoadingState = 'idle' | 'analyzing' | 'confirming' | 'saving';
@@ -85,21 +85,29 @@ const DocManagementPage: React.FC = () => {
             date: aiResult.date ? new Date(aiResult.date).toISOString() : new Date().toISOString(),
         };
 
-        // FIX: The previous implementation caused TypeScript errors due to assigning an object literal
-        // with varying properties to a variable with a discriminated union type.
-        // By creating the report object and passing it directly to `addReport` inside the switch,
-        // TypeScript can correctly infer the type for the function argument.
+        // FIX: The `Report` type is a discriminated union. To avoid type errors when
+        // creating a specific report type, we create a typed variable for the report data
+        // before passing it to the `addReport` function. This helps TypeScript correctly
+        // infer the object's shape against the appropriate member of the union.
         const createAndSaveReport = () => {
             switch (aiResult.documentType) {
-                case 'SOAP Note':
-                    return addReport({ ...commonData, type: 'Consultation', summary: aiResult.summary, vetName: aiResult.details?.vetName || 'N/A' });
-                case 'Prescription':
-                    return addReport({ ...commonData, type: 'Prescription', medications: aiResult.details?.medications || [], vetName: aiResult.details?.vetName || 'N/A' });
-                case 'Radiography Report':
-                     return addReport({ ...commonData, type: 'PawScan', summary: aiResult.summary, dataUrl: filePreview || '#' });
-                default:
+                case 'SOAP Note': {
+                    const reportData: Omit<ConsultationReport, 'id'> = { ...commonData, type: 'Consultation', summary: aiResult.summary, vetName: aiResult.details?.vetName || 'N/A' };
+                    return addReport(reportData);
+                }
+                case 'Prescription': {
+                    const reportData: Omit<PrescriptionReport, 'id'> = { ...commonData, type: 'Prescription', medications: aiResult.details?.medications || [], vetName: aiResult.details?.vetName || 'N/A' };
+                    return addReport(reportData);
+                }
+                case 'Radiography Report': {
+                     const reportData: Omit<PawScanReport, 'id'> = { ...commonData, type: 'PawScan', summary: aiResult.summary, dataUrl: filePreview || '#' };
+                     return addReport(reportData);
+                }
+                default: {
                     // For 'Lab Result', 'Other', etc. we can save as a generic scan for now
-                    return addReport({ ...commonData, type: 'PawScan', summary: aiResult.summary, dataUrl: filePreview || '#' });
+                    const reportData: Omit<PawScanReport, 'id'> = { ...commonData, type: 'PawScan', summary: aiResult.summary, dataUrl: filePreview || '#' };
+                    return addReport(reportData);
+                }
             }
         };
 

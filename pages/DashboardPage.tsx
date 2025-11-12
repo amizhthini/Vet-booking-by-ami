@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import type { Appointment, Vet, Attachment } from '../types';
 import { Page } from '../types';
-import { getAppointments, getVets, updateAppointment } from '../services/mockDataService';
+import { getAppointments, getVets, updateAppointment, confirmAppointmentPayment } from '../services/mockDataService';
 import AppointmentCard from '../components/AppointmentCard';
 import VetCard from '../components/VetCard';
 import Spinner from '../components/ui/Spinner';
@@ -18,7 +18,7 @@ interface DashboardPageProps {
 }
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsultation }) => {
-  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
+  const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
   const [featuredVets, setFeaturedVets] = useState<Vet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -33,15 +33,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
       setIsLoading(true);
       try {
         const [appointments, vets] = await Promise.all([getAppointments(), getVets()]);
-        const upcoming = appointments
-          .filter(a => a.status === 'Upcoming')
-          .sort((a, b) => new Date(`${a.date} ${a.time}`).getTime() - new Date(`${b.date} ${b.time}`).getTime())
-          .slice(0, 2);
-        
-        setUpcomingAppointments(upcoming);
+        setAllAppointments(appointments);
         setFeaturedVets(vets.slice(0, 2));
       } catch (error) {
         console.error("Failed to load dashboard data", error);
+        setToast({ message: 'Failed to load dashboard data.', type: 'error' });
       } finally {
         setIsLoading(false);
       }
@@ -58,7 +54,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
   const handleSaveDetails = async (appointmentId: string, data: { userNotes?: string; attachments?: Attachment[] }) => {
     try {
         const updatedAppt = await updateAppointment(appointmentId, data);
-        setUpcomingAppointments(prev => prev.map(a => a.id === appointmentId ? updatedAppt : a));
+        setAllAppointments(prev => prev.map(a => a.id === appointmentId ? updatedAppt : a));
     } catch (error) {
         console.error("Failed to save details:", error);
         setToast({ message: 'Failed to save details.', type: 'error' });
@@ -72,7 +68,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
 
   const handleRescheduleComplete = (result: { success: boolean; data?: Appointment; error?: string }) => {
     if (result.success && result.data) {
-        setUpcomingAppointments(prev => prev.map(a => a.id === result.data!.id ? result.data! : a));
+        setAllAppointments(prev => {
+            const existing = prev.find(a => a.id === result.data!.id);
+            if (existing) {
+                return prev.map(a => a.id === result.data!.id ? result.data! : a);
+            }
+            return [...prev, result.data];
+        });
         setToast({ message: 'Appointment rescheduled successfully!', type: 'success' });
     } else {
         setToast({ message: result.error || 'Failed to reschedule.', type: 'error' });
@@ -83,8 +85,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
   const handleCancelAppointment = async (appointment: Appointment) => {
     if (window.confirm(`Are you sure you want to cancel your appointment for ${appointment.pet.name}?`)) {
         try {
-            await updateAppointment(appointment.id, { status: 'Cancelled' });
-            setUpcomingAppointments(prev => prev.filter(a => a.id !== appointment.id));
+            const updatedAppt = await updateAppointment(appointment.id, { status: 'Cancelled' });
+            setAllAppointments(prev => prev.map(a => a.id === appointment.id ? updatedAppt : a));
             setToast({ message: 'Appointment cancelled successfully.', type: 'success' });
         } catch (error) {
             console.error("Failed to cancel appointment:", error);
@@ -93,6 +95,21 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
     }
   };
 
+  const handleConfirmPayment = async (appointment: Appointment) => {
+    try {
+        const updatedAppt = await confirmAppointmentPayment(appointment.id);
+        setAllAppointments(prev => prev.map(a => a.id === appointment.id ? updatedAppt : a));
+        setToast({ message: 'Appointment confirmed successfully!', type: 'success' });
+    } catch (error) {
+        console.error("Failed to confirm appointment:", error);
+        setToast({ message: 'Failed to confirm appointment.', type: 'error' });
+    }
+  };
+
+  const upcomingAndPendingAppointments = allAppointments
+    .filter(a => a.status === 'Upcoming' || a.status === 'Pending')
+    .sort((a, b) => new Date(`${a.date} ${a.time}`).getTime() - new Date(`${b.date} ${b.time}`).getTime())
+    .slice(0, 3);
 
   if (isLoading) {
     return (
@@ -110,11 +127,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-700">Upcoming Appointments</h2>
+            <h2 className="text-2xl font-semibold text-gray-700">Your Schedule</h2>
             <Button variant="ghost" onClick={() => navigateTo(Page.Appointments)}>View All</Button>
           </div>
-          {upcomingAppointments.length > 0 ? (
-            upcomingAppointments.map(appt => (
+          {upcomingAndPendingAppointments.length > 0 ? (
+            upcomingAndPendingAppointments.map(appt => (
               <AppointmentCard 
                 key={appt.id} 
                 appointment={appt} 
@@ -122,6 +139,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
                 onAddDetails={handleOpenDetailsModal}
                 onReschedule={handleOpenRescheduleModal}
                 onCancel={handleCancelAppointment}
+                onConfirmPayment={handleConfirmPayment}
                 />
             ))
           ) : (

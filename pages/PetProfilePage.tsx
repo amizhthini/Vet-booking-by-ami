@@ -120,6 +120,12 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
         }
     };
 
+    const petParentActions = user?.role === 'Pet Parent' ? {
+        onAddDetails: handleOpenDetailsModal,
+        onReschedule: handleOpenRescheduleModal,
+        onCancel: handleCancelAppointment,
+    } : {};
+
     if (isLoading) {
         return (
             <PageWrapper title={`Loading Profile for ${pet.name}...`}>
@@ -165,9 +171,7 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
                                     key={appt.id} 
                                     appointment={appt} 
                                     onStartConsultation={() => {}} 
-                                    onAddDetails={user?.role === 'Pet Parent' ? handleOpenDetailsModal : () => {}}
-                                    onReschedule={user?.role === 'Pet Parent' ? handleOpenRescheduleModal : undefined}
-                                    onCancel={user?.role === 'Pet Parent' ? handleCancelAppointment : () => {}}
+                                    {...petParentActions}
                                 />
                            ))}
                         </div>

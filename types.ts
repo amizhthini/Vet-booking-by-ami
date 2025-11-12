@@ -7,9 +7,10 @@ export enum Page {
     PetProfile = 'Pet Profile',
     Reports = 'Reports',
     DocManagement = 'Document Management',
+    Referrals = 'Referrals',
     
     // Vet Pages
-    Schedule = 'Schedule',
+    VetAppointments = 'My Appointments',
     Patients = 'Patients',
 
     // Clinic Pages
@@ -21,12 +22,19 @@ export enum Page {
     VetManagement = 'Vet Management',
     ClinicManagement = 'Clinic Management',
     UserManagement = 'User Management',
+
+    // New Modules
+    Templates = 'Templates',
+    Financials = 'Financials',
+    StaffManagement = 'Staff Management',
+    MasterData = 'Master Data',
+    Settings = 'Settings',
 }
 
 export type Role = 'Pet Parent' | 'Veterinarian' | 'Clinic Admin' | 'Admin';
 
 export interface User {
-  id?: string;
+  id: string;
   name: string;
   role: Role;
 }
@@ -97,22 +105,25 @@ export interface Pet {
     healthRecord: HealthRecord;
 }
 
+export interface FollowUp {
+    date: string; // YYYY-MM-DD
+    time: string; // HH:mm AM/PM
+    reason: string;
+    referredVetName?: string;
+}
+
 export interface SoapNote {
     subjective: string;
     objective: string;
     assessment: string;
     plan: string;
+    followUp?: FollowUp;
 }
 
 export interface Prescription {
     medication: string;
     dosage: string;
     frequency: string;
-}
-
-export interface FollowUp {
-    date: string; // YYYY-MM-DD
-    reason: string;
 }
 
 export interface Attachment {
@@ -128,13 +139,32 @@ export interface Appointment {
     type: ConsultationType;
     date: string;
     time: string;
-    status: 'Upcoming' | 'Completed' | 'Cancelled';
+    status: 'Upcoming' | 'Completed' | 'Cancelled' | 'Pending';
     notes?: SoapNote;
     userNotes?: string;
     attachments?: Attachment[];
     prescriptions?: Prescription[];
-    followUp?: FollowUp;
 }
+
+export interface Notification {
+    id: string;
+    message: string;
+    date: string; // ISO string
+    isRead: boolean;
+    userId: string;
+}
+
+export interface Referral {
+    id: string;
+    pet: Pet;
+    fromVet: Vet;
+    toVet: Vet;
+    appointmentId: string; // ID of the original appointment
+    notes: string;
+    date: string; // ISO string
+    status: 'Pending' | 'Booked';
+}
+
 
 // Reports
 export interface BaseReport {

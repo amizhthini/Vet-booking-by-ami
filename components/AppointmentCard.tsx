@@ -8,19 +8,28 @@ import CompletedAppointmentDetails from './CompletedAppointmentDetails';
 interface AppointmentCardProps {
   appointment: Appointment;
   onStartConsultation: (appointment: Appointment) => void;
-  onAddDetails: (appointment: Appointment) => void;
+  onAddDetails?: (appointment: Appointment) => void;
   onReschedule?: (appointment: Appointment) => void;
-  onCancel: (appointment: Appointment) => void;
+  onCancel?: (appointment: Appointment) => void;
+  onConfirmPayment?: (appointment: Appointment) => void;
 }
 
-const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onStartConsultation, onAddDetails, onReschedule, onCancel }) => {
+const AppointmentCard: React.FC<AppointmentCardProps> = ({ 
+    appointment, 
+    onStartConsultation, 
+    onAddDetails, 
+    onReschedule, 
+    onCancel,
+    onConfirmPayment,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { status, type } = appointment;
   const isUpcoming = status === 'Upcoming';
+  const isPending = status === 'Pending';
   const isCompleted = status === 'Completed';
   const isVirtual = type === 'Virtual';
 
-  const formattedDate = new Date(appointment.date).toLocaleDateString('en-US', {
+  const formattedDate = new Date(`${appointment.date}T00:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -28,13 +37,13 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onStartC
   });
 
   const getCanReschedule = () => {
-    if (status !== 'Upcoming') return false;
+    if (status !== 'Upcoming' && status !== 'Pending') return false;
     const [time, modifier] = appointment.time.split(' ');
     let [hours, minutes] = time.split(':');
     if (hours === '12') {
       hours = '00';
     }
-    if (modifier === 'PM') {
+    if (modifier === 'PM' && parseInt(hours, 10) < 12) {
       hours = (parseInt(hours, 10) + 12).toString();
     }
     const appointmentDateTime = new Date(`${appointment.date}T${hours.padStart(2, '0')}:${minutes}:00`);
@@ -45,14 +54,15 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onStartC
 
   const canReschedule = getCanReschedule();
 
-  const statusStyles = {
+  const statusStyles: Record<Appointment['status'], string> = {
     Upcoming: 'bg-green-100 text-green-800',
+    Pending: 'bg-yellow-100 text-yellow-800',
     Completed: 'bg-gray-200 text-gray-700',
     Cancelled: 'bg-red-100 text-red-800',
   }
 
   return (
-    <Card className={`mb-4 transition-all duration-300 ${!isUpcoming ? 'bg-gray-50' : 'bg-white'}`}>
+    <Card className={`mb-4 transition-all duration-300 ${status === 'Completed' ? 'bg-gray-50' : 'bg-white'}`}>
         <div 
             className={`flex flex-col sm:flex-row justify-between sm:items-center ${isCompleted ? 'cursor-pointer hover:bg-gray-100 -m-6 p-6 rounded-xl' : ''}`}
             onClick={isCompleted ? () => setIsExpanded(!isExpanded) : undefined}
@@ -72,11 +82,18 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onStartC
                 <span className={`px-3 py-1 text-sm font-semibold rounded-full ${statusStyles[status]}`}>
                     {appointment.status}
                 </span>
-                {isUpcoming && (
+                {(isUpcoming || isPending) && (
                      <div className="flex items-center flex-wrap justify-end gap-2 pt-2">
-                        <Button onClick={() => onAddDetails(appointment)} size="sm" variant="secondary">
-                            Add/Edit Details
-                        </Button>
+                        {isPending && onConfirmPayment && (
+                             <Button onClick={() => onConfirmPayment(appointment)} size="sm">
+                                Confirm Payment
+                            </Button>
+                        )}
+                        {isUpcoming && onAddDetails && (
+                            <Button onClick={() => onAddDetails(appointment)} size="sm" variant="secondary">
+                                Add/Edit Details
+                            </Button>
+                        )}
                          {canReschedule && (
                             <>
                                 {onReschedule && (
@@ -84,12 +101,14 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onStartC
                                         Reschedule
                                     </Button>
                                 )}
+                                {onCancel && (
                                 <Button onClick={() => onCancel(appointment)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-50 focus:ring-red-500">
                                     Cancel
                                 </Button>
+                                )}
                             </>
                         )}
-                        {isVirtual && (
+                        {isUpcoming && isVirtual && (
                             <Button onClick={() => onStartConsultation(appointment)} size="sm">
                                 <VideoCameraIcon className="w-5 h-5 mr-2" />
                                 Start

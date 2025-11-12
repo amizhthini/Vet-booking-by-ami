@@ -5,6 +5,8 @@ import type { Pet, PetOwner } from '../types';
 import Spinner from '../components/ui/Spinner';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import CreatePetModal from '../components/CreatePetModal';
+import Toast from '../components/ui/Toast';
 
 interface PatientRecordsPageProps {
     viewPetProfile: (pet: Pet) => void;
@@ -27,7 +29,7 @@ const OwnerSection: React.FC<{
                 <h2 className="text-xl font-semibold text-gray-700">{owner.name}</h2>
                 <div className="flex items-center">
                     <span className="text-sm text-gray-500 mr-2">{pets.length} pet(s)</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
@@ -57,23 +59,35 @@ const PatientRecordsPage: React.FC<PatientRecordsPageProps> = ({ viewPetProfile 
     const [owners, setOwners] = useState<PetOwner[]>([]);
     const [pets, setPets] = useState<Pet[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            // For a real clinic admin, you would filter by clinicId
+            const [ownerData, petData] = await Promise.all([getPetOwners(), getPets()]);
+            setOwners(ownerData);
+            setPets(petData);
+        } catch (error) {
+            console.error("Failed to fetch patient records:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            try {
-                // For a real clinic admin, you would filter by clinicId
-                const [ownerData, petData] = await Promise.all([getPetOwners(), getPets()]);
-                setOwners(ownerData);
-                setPets(petData);
-            } catch (error) {
-                console.error("Failed to fetch patient records:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchData();
     }, []);
+
+    const handleCreateComplete = (result: { success: boolean; data?: Pet; error?: string }) => {
+        if (result.success) {
+            setToast({ message: 'Pet created successfully!', type: 'success' });
+            fetchData(); // Refresh all data
+        } else {
+            setToast({ message: result.error || 'Failed to create pet.', type: 'error' });
+        }
+    };
 
     const ownersWithPets = useMemo(() => {
         return owners.map(owner => ({
@@ -92,6 +106,10 @@ const PatientRecordsPage: React.FC<PatientRecordsPageProps> = ({ viewPetProfile 
     
     return (
         <PageWrapper title="Patient Records">
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+            <div className="flex justify-end mb-4">
+                <Button onClick={() => setIsCreateModalOpen(true)}>Create New Pet</Button>
+            </div>
             {ownersWithPets.map(owner => (
                 <OwnerSection 
                     key={owner.id} 
@@ -100,6 +118,12 @@ const PatientRecordsPage: React.FC<PatientRecordsPageProps> = ({ viewPetProfile 
                     viewPetProfile={viewPetProfile}
                 />
             ))}
+            <CreatePetModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onComplete={handleCreateComplete}
+                existingOwners={owners}
+            />
         </PageWrapper>
     );
 };

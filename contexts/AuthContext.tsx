@@ -32,10 +32,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = (role: Role) => {
     // In a real app, this would involve a call to a backend API
     const mockUsers: Record<Role, User> = {
-        'Pet Parent': { name: 'Alex', role: 'Pet Parent' },
+        'Pet Parent': { id: 'po1', name: 'Alex', role: 'Pet Parent' },
         'Veterinarian': { id: 'v1', name: 'Dr. Emily Carter', role: 'Veterinarian' },
-        'Clinic Admin': { name: 'Clinic Manager', role: 'Clinic Admin' },
-        'Admin': { name: 'Admin User', role: 'Admin' }
+        'Clinic Admin': { id: 'ca1', name: 'Clinic Manager', role: 'Clinic Admin' },
+        'Admin': { id: 'admin1', name: 'Admin User', role: 'Admin' }
     };
     const newUser = mockUsers[role];
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));

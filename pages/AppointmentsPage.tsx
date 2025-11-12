@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import AppointmentCard from '../components/AppointmentCard';
-import { getAppointments, updateAppointment } from '../services/mockDataService';
+import { getAppointments, updateAppointment, confirmAppointmentPayment } from '../services/mockDataService';
 import type { Appointment, Attachment } from '../types';
 import Spinner from '../components/ui/Spinner';
 import AddAppointmentDetailsModal from '../components/AddAppointmentDetailsModal';
@@ -20,7 +20,8 @@ const AppointmentSection: React.FC<{
   onAddDetails: (appointment: Appointment) => void;
   onReschedule: (appointment: Appointment) => void;
   onCancel: (appointment: Appointment) => void;
-}> = ({ title, appointments, onStartConsultation, onAddDetails, onReschedule, onCancel }) => {
+  onConfirmPayment: (appointment: Appointment) => void;
+}> = ({ title, appointments, onStartConsultation, onAddDetails, onReschedule, onCancel, onConfirmPayment }) => {
     const [isOpen, setIsOpen] = useState(true);
 
     if (appointments.length === 0) {
@@ -49,6 +50,7 @@ const AppointmentSection: React.FC<{
                             onAddDetails={onAddDetails} 
                             onReschedule={onReschedule}
                             onCancel={onCancel}
+                            onConfirmPayment={onConfirmPayment}
                         />
                     ))}
                 </div>
@@ -92,6 +94,7 @@ const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ startConsultation }
     try {
         const updatedAppt = await updateAppointment(appointmentId, data);
         setAllAppointments(prev => prev.map(a => a.id === appointmentId ? updatedAppt : a));
+        setToast({ message: 'Details saved successfully!', type: 'success' });
     } catch (error) {
         console.error("Failed to save details:", error);
         setToast({ message: 'Failed to save details.', type: 'error' });
@@ -125,10 +128,25 @@ const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ startConsultation }
         }
     }
   };
+  
+  const handleConfirmPayment = async (appointment: Appointment) => {
+    try {
+        const updatedAppt = await confirmAppointmentPayment(appointment.id);
+        setAllAppointments(prev => prev.map(a => a.id === appointment.id ? updatedAppt : a));
+        setToast({ message: 'Appointment confirmed successfully!', type: 'success' });
+    } catch (error) {
+        console.error("Failed to confirm appointment:", error);
+        setToast({ message: 'Failed to confirm appointment.', type: 'error' });
+    }
+  };
 
   const sortedAppointments = useMemo(() => {
     const upcoming = allAppointments
       .filter(a => a.status === 'Upcoming')
+      .sort((a, b) => new Date(`${a.date} ${a.time}`).getTime() - new Date(`${b.date} ${b.time}`).getTime());
+      
+    const pending = allAppointments
+      .filter(a => a.status === 'Pending')
       .sort((a, b) => new Date(`${a.date} ${a.time}`).getTime() - new Date(`${b.date} ${b.time}`).getTime());
 
     const past = allAppointments
@@ -139,8 +157,16 @@ const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ startConsultation }
       .filter(a => a.status === 'Cancelled')
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-    return { upcoming, past, cancelled };
+    return { upcoming, pending, past, cancelled };
   }, [allAppointments]);
+
+  const commonProps = {
+      onStartConsultation: startConsultation,
+      onAddDetails: handleOpenDetailsModal,
+      onReschedule: handleOpenRescheduleModal,
+      onCancel: handleCancelAppointment,
+      onConfirmPayment: handleConfirmPayment
+  };
 
   return (
     <PageWrapper title="My Appointments">
@@ -153,9 +179,10 @@ const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ startConsultation }
         <div>
           {allAppointments.length > 0 ? (
             <>
-                <AppointmentSection title="Upcoming" appointments={sortedAppointments.upcoming} onStartConsultation={startConsultation} onAddDetails={handleOpenDetailsModal} onReschedule={handleOpenRescheduleModal} onCancel={handleCancelAppointment} />
-                <AppointmentSection title="Past" appointments={sortedAppointments.past} onStartConsultation={startConsultation} onAddDetails={handleOpenDetailsModal} onReschedule={handleOpenRescheduleModal} onCancel={handleCancelAppointment} />
-                <AppointmentSection title="Cancelled" appointments={sortedAppointments.cancelled} onStartConsultation={startConsultation} onAddDetails={handleOpenDetailsModal} onReschedule={handleOpenRescheduleModal} onCancel={handleCancelAppointment} />
+                <AppointmentSection title="Pending Confirmation" appointments={sortedAppointments.pending} {...commonProps} />
+                <AppointmentSection title="Upcoming" appointments={sortedAppointments.upcoming} {...commonProps} />
+                <AppointmentSection title="Past" appointments={sortedAppointments.past} {...commonProps} />
+                <AppointmentSection title="Cancelled" appointments={sortedAppointments.cancelled} {...commonProps} />
             </>
           ) : (
             <p className="text-center text-gray-500 py-10">You have no appointments scheduled.</p>
