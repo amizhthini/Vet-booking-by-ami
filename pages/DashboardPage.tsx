@@ -1,13 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
-import type { Appointment, Vet } from '../types';
+import type { Appointment, Vet, Attachment } from '../types';
 import { Page } from '../types';
-import { getAppointments, getVets } from '../services/mockDataService';
+import { getAppointments, getVets, updateAppointment } from '../services/mockDataService';
 import AppointmentCard from '../components/AppointmentCard';
 import VetCard from '../components/VetCard';
 import Spinner from '../components/ui/Spinner';
 import Button from '../components/ui/Button';
+import AddAppointmentDetailsModal from '../components/AddAppointmentDetailsModal';
+
 
 interface DashboardPageProps {
   navigateTo: (page: Page) => void;
@@ -18,6 +19,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
   const [featuredVets, setFeaturedVets] = useState<Vet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,6 +45,21 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
     fetchData();
   }, []);
 
+  const handleOpenDetailsModal = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleSaveDetails = async (appointmentId: string, data: { userNotes?: string; attachments?: Attachment[] }) => {
+    try {
+        const updatedAppt = await updateAppointment(appointmentId, data);
+        setUpcomingAppointments(prev => prev.map(a => a.id === appointmentId ? updatedAppt : a));
+    } catch (error) {
+        console.error("Failed to save details:", error);
+    }
+  };
+
+
   if (isLoading) {
     return (
       <PageWrapper title="Dashboard">
@@ -61,7 +80,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
           </div>
           {upcomingAppointments.length > 0 ? (
             upcomingAppointments.map(appt => (
-              <AppointmentCard key={appt.id} appointment={appt} onStartConsultation={startConsultation} />
+              <AppointmentCard 
+                key={appt.id} 
+                appointment={appt} 
+                onStartConsultation={startConsultation}
+                onAddDetails={handleOpenDetailsModal} 
+                />
             ))
           ) : (
             <div className="text-center py-10 bg-white rounded-lg shadow-sm">
@@ -87,6 +111,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
             <Button className="w-full mt-4" variant="secondary" onClick={() => navigateTo(Page.Vets)}>Find More Vets</Button>
         </div>
       </div>
+       <AddAppointmentDetailsModal 
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        appointment={selectedAppointment}
+        onSave={handleSaveDetails}
+      />
     </PageWrapper>
   );
 };

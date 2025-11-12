@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { Vet, Pet, Appointment } from '../types';
 import { ConsultationType } from '../types';
@@ -11,12 +10,12 @@ interface BookingModalProps {
   vet: Vet | null;
   isOpen: boolean;
   onClose: () => void;
-  onBookingConfirmed: (newAppointment: Appointment) => void;
+  onComplete: (result: { success: boolean; error?: string }) => void;
 }
 
 const availableTimes = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
 
-const BookingModal: React.FC<BookingModalProps> = ({ vet, isOpen, onClose, onBookingConfirmed }) => {
+const BookingModal: React.FC<BookingModalProps> = ({ vet, isOpen, onClose, onComplete }) => {
   const [step, setStep] = useState(1);
   const [pets, setPets] = useState<Pet[]>([]);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
@@ -53,11 +52,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ vet, isOpen, onClose, onBoo
             date: selectedDate,
             time: selectedTime,
         };
-        const newAppointment = await saveAppointment(newAppointmentData);
-        onBookingConfirmed(newAppointment);
+        await saveAppointment(newAppointmentData);
+        onComplete({ success: true });
         onClose();
     } catch (error) {
         console.error("Failed to book appointment", error);
+        onComplete({ success: false, error: 'Failed to book appointment. Please try again later.' });
     } finally {
         setIsLoading(false);
     }

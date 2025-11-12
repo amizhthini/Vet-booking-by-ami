@@ -1,17 +1,132 @@
 import React from 'react';
-import type { Vet, Pet, Appointment } from './types';
+import type { Vet, Pet, Appointment, PetOwner } from './types';
 import { ConsultationType } from './types';
 
+export const PET_OWNERS: PetOwner[] = [
+    { id: 'po1', name: 'Alex Johnson', clinicId: 'c1' },
+    { id: 'po2', name: 'Maria Garcia', clinicId: 'c1' },
+    { id: 'po3', name: 'Sam Chen', clinicId: 'c2' },
+];
+
 export const PETS: Pet[] = [
-    { id: 'p1', name: 'Buddy', breed: 'Golden Retriever', age: 5, imageUrl: 'https://picsum.photos/seed/buddy/200' },
-    { id: 'p2', name: 'Lucy', breed: 'Siamese Cat', age: 3, imageUrl: 'https://picsum.photos/seed/lucy/200' },
+    { 
+        id: 'p1', 
+        name: 'Buddy', 
+        breed: 'Golden Retriever', 
+        age: 5, 
+        imageUrl: 'https://picsum.photos/seed/buddy/200',
+        ownerId: 'po1',
+        healthRecord: {
+            vaccinations: ['Rabies (01/2023)', 'DHPP (01/2023)', 'Bordetella (05/2023)'],
+            allergies: ['None known'],
+            medications: ['Simparica Trio (monthly)']
+        }
+    },
+    { 
+        id: 'p2', 
+        name: 'Lucy', 
+        breed: 'Siamese Cat', 
+        age: 3, 
+        imageUrl: 'https://picsum.photos/seed/lucy/200',
+        ownerId: 'po2',
+        healthRecord: {
+            vaccinations: ['FVRCP (03/2023)', 'Rabies (03/2023)'],
+            allergies: ['Flea bites'],
+            medications: ['Revolution Plus (monthly)']
+        }
+    },
+     { 
+        id: 'p3', 
+        name: 'Max', 
+        breed: 'German Shepherd', 
+        age: 7, 
+        imageUrl: 'https://picsum.photos/seed/max/200',
+        ownerId: 'po1',
+        healthRecord: {
+            vaccinations: ['Rabies (06/2023)', 'DHPP (06/2023)'],
+            allergies: ['Chicken', 'Grain'],
+            medications: ['Galliprant (as needed for arthritis)']
+        }
+    },
 ];
 
 export const VETS: Vet[] = [
-    { id: 'v1', name: 'Dr. Emily Carter', specialty: 'General Practice', clinicName: 'Happy Paws Clinic', location: 'New York, NY', imageUrl: 'https://picsum.photos/seed/drcarter/200', rating: 4.9, reviewCount: 124 },
-    { id: 'v2', name: 'Dr. Johnathan Lee', specialty: 'Orthopedic Surgery', clinicName: 'Advanced Pet Care', location: 'San Francisco, CA', imageUrl: 'https://picsum.photos/seed/drlee/200', rating: 4.8, reviewCount: 98 },
+    { 
+        id: 'v1', 
+        name: 'Dr. Emily Carter', 
+        specialty: 'General Practice', 
+        clinicId: 'c1', 
+        clinicName: 'Happy Paws Clinic', 
+        location: 'New York, NY', 
+        imageUrl: 'https://picsum.photos/seed/drcarter/200', 
+        rating: 4.9, 
+        reviewCount: 124,
+        schedule: [
+            { id: 'e1', date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0], title: '10:00 AM - Buddy', type: 'appointment'},
+            { id: 'e2', date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString().split('T')[0], title: '11:00 AM - Max', type: 'appointment'},
+            { id: 'e3', date: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString().split('T')[0], title: 'Surgery', type: 'blocked'},
+            { id: 'e4', date: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0], title: '02:00 PM - Checkup', type: 'appointment'},
+        ],
+        weeklyAvailability: {
+            Monday: [{ startTime: '09:00', endTime: '17:00' }],
+            Tuesday: [{ startTime: '09:00', endTime: '17:00' }],
+            Wednesday: [{ startTime: '09:00', endTime: '13:00' }],
+            Friday: [{ startTime: '10:00', endTime: '16:00' }],
+        }
+    },
+    { id: 'v2', name: 'Dr. Johnathan Lee', specialty: 'Orthopedic Surgery', clinicId: 'c2', clinicName: 'Advanced Pet Care', location: 'San Francisco, CA', imageUrl: 'https://picsum.photos/seed/drlee/200', rating: 4.8, reviewCount: 98 },
     { id: 'v3', name: 'Dr. Sarah Chen', specialty: 'Dermatology', clinicName: 'Independent', location: 'Chicago, IL', imageUrl: 'https://picsum.photos/seed/drchen/200', rating: 5.0, reviewCount: 76 },
-    { id: 'v4', name: 'Dr. Michael Ramirez', specialty: 'Cardiology', clinicName: 'Happy Paws Clinic', location: 'New York, NY', imageUrl: 'https://picsum.photos/seed/drramirez/200', rating: 4.7, reviewCount: 110 },
+    { 
+        id: 'v4', 
+        name: 'Dr. Michael Ramirez', 
+        specialty: 'Cardiology', 
+        clinicId: 'c1', 
+        clinicName: 'Happy Paws Clinic', 
+        location: 'New York, NY', 
+        imageUrl: 'https://picsum.photos/seed/drramirez/200', 
+        rating: 4.7, 
+        reviewCount: 110,
+        schedule: [
+             { id: 'e5', date: new Date(new Date().setDate(new Date().getDate() + 4)).toISOString().split('T')[0], title: 'Conference', type: 'blocked'},
+             { id: 'e6', date: new Date(new Date().setDate(new Date().getDate() + 8)).toISOString().split('T')[0], title: 'Follow-up Calls', type: 'blocked'},
+             { id: 'e7', date: new Date(new Date().setDate(new Date().getDate() + 9)).toISOString().split('T')[0], title: '09:00 AM - Fido', type: 'appointment'},
+        ],
+        weeklyAvailability: {
+            Tuesday: [{ startTime: '10:00', endTime: '18:00' }],
+            Thursday: [{ startTime: '10:00', endTime: '18:00' }],
+        }
+    },
+     { 
+        id: 'v5', 
+        name: 'Dr. David Chen', 
+        specialty: 'Oncology', 
+        clinicId: 'c1', 
+        clinicName: 'Happy Paws Clinic', 
+        location: 'New York, NY', 
+        imageUrl: 'https://picsum.photos/seed/drdavid/200', 
+        rating: 4.9, 
+        reviewCount: 88,
+        schedule: [
+            { id: 'e8', date: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0], title: 'Admin Time', type: 'blocked' },
+            { id: 'e9', date: new Date(new Date().setDate(new Date().getDate() + 6)).toISOString().split('T')[0], title: '10:00 AM - Whiskers', type: 'appointment' },
+        ],
+        weeklyAvailability: {
+             Monday: [{ startTime: '08:00', endTime: '12:00' }, { startTime: '13:00', endTime: '16:00' }],
+             Wednesday: [{ startTime: '08:00', endTime: '12:00' }, { startTime: '13:00', endTime: '16:00' }],
+             Friday: [{ startTime: '08:00', endTime: '12:00' }],
+        }
+    },
+    { 
+        id: 'v6', 
+        name: 'Dr. Olivia Martinez', 
+        specialty: 'Neurology', 
+        clinicId: 'c2', 
+        clinicName: 'Advanced Pet Care', 
+        location: 'San Francisco, CA', 
+        imageUrl: 'https://picsum.photos/seed/drmartinez/200', 
+        rating: 4.8, 
+        reviewCount: 65 
+    },
 ];
 
 export const APPOINTMENTS: Appointment[] = [
@@ -46,6 +161,14 @@ export const APPOINTMENTS: Appointment[] = [
             objective: "Mild swelling noted in the right stifle joint. Pain on full extension of the hip. Gait analysis shows a moderate, weight-bearing limp. No crepitus detected.",
             assessment: "Provisional diagnosis: Suspected cranial cruciate ligament strain or early-stage hip dysplasia. Rule out soft tissue injury.",
             plan: "Prescribed strict rest for 1 week. Start NSAID trial (Carprofen 50mg BID). Schedule follow-up appointment in 7-10 days. If no improvement, recommend radiographs of the hip and stifle joints."
+        },
+        prescriptions: [
+            { medication: 'Carprofen', dosage: '50mg', frequency: 'Twice daily' },
+            { medication: 'Joint Supplement', dosage: '1 chew', frequency: 'Once daily' }
+        ],
+        followUp: {
+            date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString().split('T')[0],
+            reason: "Re-check limping in 7-10 days. Schedule radiographs if no improvement."
         }
     },
     {
@@ -56,6 +179,28 @@ export const APPOINTMENTS: Appointment[] = [
         date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString().split('T')[0],
         time: '04:00 PM',
         status: 'Cancelled'
+    },
+    {
+        id: 'a5',
+        pet: PETS[2],
+        vet: VETS[0],
+        type: ConsultationType.InPerson,
+        date: new Date(new Date().setDate(new Date().getDate() - 25)).toISOString().split('T')[0],
+        time: '11:00 AM',
+        status: 'Completed',
+        notes: {
+            subjective: "Owner reports Max has been showing signs of stiffness, particularly in the mornings. Difficulty getting up after long periods of rest.",
+            objective: "Physical exam reveals decreased range of motion in both hips. Mild muscle atrophy in the hind limbs. Positive Ortolani sign is absent. Crepitus noted on hip manipulation.",
+            assessment: "Chronic osteoarthritis secondary to hip dysplasia.",
+            plan: "Continue Galliprant as needed for pain management. Recommend starting joint supplements (glucosamine/chondroitin). Discussed weight management and low-impact exercise like swimming. Recheck in 3 months or sooner if signs worsen."
+        },
+        prescriptions: [
+            { medication: 'Galliprant', dosage: 'As needed', frequency: 'For pain' }
+        ],
+        followUp: {
+            date: new Date(new Date().setDate(new Date().getDate() + 65)).toISOString().split('T')[0],
+            reason: "Re-check in 3 months or sooner if signs of stiffness worsen."
+        }
     },
 ];
 

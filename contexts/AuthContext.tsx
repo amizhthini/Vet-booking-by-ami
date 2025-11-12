@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // In a real app, this would involve a call to a backend API
     const mockUsers: Record<Role, User> = {
         'Pet Parent': { name: 'Alex', role: 'Pet Parent' },
-        'Veterinarian': { name: 'Dr. Smith', role: 'Veterinarian' },
+        'Veterinarian': { id: 'v1', name: 'Dr. Emily Carter', role: 'Veterinarian' },
         'Clinic Admin': { name: 'Clinic Manager', role: 'Clinic Admin' },
         'Admin': { name: 'Admin User', role: 'Admin' }
     };

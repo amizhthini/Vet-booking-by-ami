@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import AppointmentCard from '../components/AppointmentCard';
-import { getAppointments } from '../services/mockDataService';
-import type { Appointment } from '../types';
+import { getAppointments, updateAppointment } from '../services/mockDataService';
+import type { Appointment, Attachment } from '../types';
 import Spinner from '../components/ui/Spinner';
+import AddAppointmentDetailsModal from '../components/AddAppointmentDetailsModal';
 
 interface AppointmentsPageProps {
   startConsultation: (appointment: Appointment) => void;
@@ -13,7 +14,8 @@ const AppointmentSection: React.FC<{
   title: string;
   appointments: Appointment[];
   onStartConsultation: (appointment: Appointment) => void;
-}> = ({ title, appointments, onStartConsultation }) => {
+  onAddDetails: (appointment: Appointment) => void;
+}> = ({ title, appointments, onStartConsultation, onAddDetails }) => {
     const [isOpen, setIsOpen] = useState(true);
 
     if (appointments.length === 0) {
@@ -28,14 +30,19 @@ const AppointmentSection: React.FC<{
                 aria-expanded={isOpen}
             >
                 <h2 className="text-xl font-semibold text-gray-700">{title} ({appointments.length})</h2>
-                 <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             {isOpen && (
                 <div className="bg-white p-4 rounded-b-lg shadow-sm">
                     {appointments.map(appointment => (
-                        <AppointmentCard key={appointment.id} appointment={appointment} onStartConsultation={onStartConsultation} />
+                        <AppointmentCard 
+                            key={appointment.id} 
+                            appointment={appointment} 
+                            onStartConsultation={onStartConsultation}
+                            onAddDetails={onAddDetails} 
+                        />
                     ))}
                 </div>
             )}
@@ -47,6 +54,8 @@ const AppointmentSection: React.FC<{
 const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ startConsultation }) => {
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -63,6 +72,22 @@ const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ startConsultation }
     
     fetchAppointments();
   }, []);
+  
+  const handleOpenDetailsModal = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleSaveDetails = async (appointmentId: string, data: { userNotes?: string; attachments?: Attachment[] }) => {
+    try {
+        const updatedAppt = await updateAppointment(appointmentId, data);
+        setAllAppointments(prev => prev.map(a => a.id === appointmentId ? updatedAppt : a));
+    } catch (error) {
+        console.error("Failed to save details:", error);
+        // In a real app, show an error toast
+    }
+  };
+
 
   const sortedAppointments = useMemo(() => {
     const upcoming = allAppointments
@@ -90,15 +115,21 @@ const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ startConsultation }
         <div>
           {allAppointments.length > 0 ? (
             <>
-                <AppointmentSection title="Upcoming" appointments={sortedAppointments.upcoming} onStartConsultation={startConsultation} />
-                <AppointmentSection title="Past" appointments={sortedAppointments.past} onStartConsultation={startConsultation} />
-                <AppointmentSection title="Cancelled" appointments={sortedAppointments.cancelled} onStartConsultation={startConsultation} />
+                <AppointmentSection title="Upcoming" appointments={sortedAppointments.upcoming} onStartConsultation={startConsultation} onAddDetails={handleOpenDetailsModal} />
+                <AppointmentSection title="Past" appointments={sortedAppointments.past} onStartConsultation={startConsultation} onAddDetails={handleOpenDetailsModal} />
+                <AppointmentSection title="Cancelled" appointments={sortedAppointments.cancelled} onStartConsultation={startConsultation} onAddDetails={handleOpenDetailsModal} />
             </>
           ) : (
             <p className="text-center text-gray-500 py-10">You have no appointments scheduled.</p>
           )}
         </div>
       )}
+      <AddAppointmentDetailsModal 
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        appointment={selectedAppointment}
+        onSave={handleSaveDetails}
+      />
     </PageWrapper>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { Appointment, SoapNote } from '../types';
 import { Page } from '../types';
@@ -8,7 +7,7 @@ import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { generateSoapNotesFromTranscript } from '../services/geminiService';
-import { saveSoapNoteForAppointment } from '../services/mockDataService';
+import { updateAppointment } from '../services/mockDataService';
 import { MOCK_TRANSCRIPT } from '../constants';
 import SoapNotesViewer from '../components/SoapNotesViewer';
 import { MicrophoneIcon, StopIcon } from '../constants';
@@ -38,7 +37,7 @@ const ConsultationPage: React.FC<ConsultationPageProps> = ({ appointment, naviga
     try {
         const notes = await generateSoapNotesFromTranscript(MOCK_TRANSCRIPT);
         setGeneratedNotes(notes);
-        await saveSoapNoteForAppointment(appointment.id, notes);
+        await updateAppointment(appointment.id, { notes });
     } catch (err: any) {
         setApiError(err.message || "An unknown error occurred.");
     } finally {

@@ -4,15 +4,22 @@ import VetCard from '../components/VetCard';
 import BookingModal from '../components/BookingModal';
 import { getVets } from '../services/mockDataService';
 import type { Vet, Appointment } from '../types';
+import { Page } from '../types';
 import Spinner from '../components/ui/Spinner';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Toast from '../components/ui/Toast';
 
-const VetsPage: React.FC = () => {
+interface VetsPageProps {
+  navigateTo: (page: Page) => void;
+}
+
+const VetsPage: React.FC<VetsPageProps> = ({ navigateTo }) => {
   const [vets, setVets] = useState<Vet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVet, setSelectedVet] = useState<Vet | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [filters, setFilters] = useState({
     location: '',
     specialty: 'All Specialties',
@@ -71,13 +78,21 @@ const VetsPage: React.FC = () => {
     setSelectedVet(null);
   };
 
-  const handleBookingConfirmed = (newAppointment: Appointment) => {
-    console.log("Booking confirmed:", newAppointment);
-    // In a real app, you might want to show a success toast message
+  const handleBookingCompletion = (result: { success: boolean; error?: string }) => {
+    if (result.success) {
+      setToast({ message: 'Booking successful! Redirecting...', type: 'success' });
+      setTimeout(() => {
+        navigateTo(Page.Appointments);
+        setToast(null);
+      }, 2000);
+    } else {
+      setToast({ message: result.error || 'An unexpected error occurred.', type: 'error' });
+    }
   };
 
   return (
     <PageWrapper title="Find a Vet or Clinic">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <Card className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
@@ -119,7 +134,7 @@ const VetsPage: React.FC = () => {
         vet={selectedVet}
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        onBookingConfirmed={handleBookingConfirmed}
+        onComplete={handleBookingCompletion}
       />
     </PageWrapper>
   );

@@ -1,10 +1,10 @@
-
-import { VETS, PETS, APPOINTMENTS } from '../constants';
-import type { Vet, Pet, Appointment, SoapNote } from '../types';
+import { VETS, PETS, APPOINTMENTS, PET_OWNERS } from '../constants';
+import type { Vet, Pet, Appointment, SoapNote, PetOwner, WeeklyAvailability } from '../types';
 
 const LS_VETS_KEY = 'vetsync_vets';
 const LS_PETS_KEY = 'vetsync_pets';
 const LS_APPOINTMENTS_KEY = 'vetsync_appointments';
+const LS_PET_OWNERS_KEY = 'vetsync_pet_owners';
 
 const initializeData = <T,>(key: string, defaultData: T[]): T[] => {
   try {
@@ -23,6 +23,7 @@ const initializeData = <T,>(key: string, defaultData: T[]): T[] => {
 initializeData<Vet>(LS_VETS_KEY, VETS);
 initializeData<Pet>(LS_PETS_KEY, PETS);
 initializeData<Appointment>(LS_APPOINTMENTS_KEY, APPOINTMENTS);
+initializeData<PetOwner>(LS_PET_OWNERS_KEY, PET_OWNERS);
 
 
 const mockApiCall = <T,>(data: T): Promise<T> => {
@@ -33,6 +34,32 @@ const mockApiCall = <T,>(data: T): Promise<T> => {
 export const getVets = (): Promise<Vet[]> => {
     const vets = initializeData<Vet>(LS_VETS_KEY, VETS);
     return mockApiCall(vets);
+}
+
+export const updateVet = (vetId: string, updatedData: { weeklyAvailability: WeeklyAvailability }): Promise<Vet> => {
+    const vets = initializeData<Vet>(LS_VETS_KEY, []);
+    let updatedVet: Vet | undefined;
+    const updatedVets = vets.map(vet => {
+        if (vet.id === vetId) {
+            updatedVet = { ...vet, ...updatedData };
+            return updatedVet;
+        }
+        return vet;
+    });
+    
+    if (updatedVet) {
+        localStorage.setItem(LS_VETS_KEY, JSON.stringify(updatedVets));
+        return mockApiCall(updatedVet);
+    } else {
+        return Promise.reject(new Error("Vet not found"));
+    }
+}
+
+
+// Pet Owners
+export const getPetOwners = (): Promise<PetOwner[]> => {
+    const owners = initializeData<PetOwner>(LS_PET_OWNERS_KEY, PET_OWNERS);
+    return mockApiCall(owners);
 }
 
 // Pets
@@ -59,12 +86,15 @@ export const saveAppointment = (appointment: Omit<Appointment, 'id' | 'status'>)
     return mockApiCall(newAppointment);
 }
 
-export const saveSoapNoteForAppointment = (appointmentId: string, notes: SoapNote): Promise<Appointment> => {
+export const updateAppointment = (appointmentId: string, updatedData: Partial<Appointment>): Promise<Appointment> => {
     const appointments = initializeData<Appointment>(LS_APPOINTMENTS_KEY, []);
     let updatedAppointment: Appointment | undefined;
     const updatedAppointments = appointments.map(appt => {
         if (appt.id === appointmentId) {
-            updatedAppointment = { ...appt, notes, status: 'Completed' };
+            const dataToUpdate = updatedData.notes 
+                ? { ...updatedData, status: 'Completed' as const } 
+                : updatedData;
+            updatedAppointment = { ...appt, ...dataToUpdate };
             return updatedAppointment;
         }
         return appt;
