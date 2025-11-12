@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import type { Appointment, Vet, Attachment } from '../types';
@@ -175,7 +176,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ navigateTo, startConsulta
        <BookingModal 
         isOpen={isRescheduleModalOpen}
         onClose={() => setIsRescheduleModalOpen(false)}
-        vet={appointmentToReschedule?.vet || null}
+        mode="reschedule"
         appointmentToReschedule={appointmentToReschedule}
         onComplete={handleRescheduleComplete}
       />

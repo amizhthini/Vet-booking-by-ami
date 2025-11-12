@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getVets } from '../services/mockDataService';
 import type { Vet, WeeklyAvailability, Appointment } from '../types';
+import { Page } from '../types';
 import Spinner from '../components/ui/Spinner';
 import Button from '../components/ui/Button';
 import BookingModal from '../components/BookingModal';
@@ -8,13 +9,13 @@ import Toast from '../components/ui/Toast';
 
 interface VetLandingPageProps {
     vetId: string;
-    onBack?: () => void;
+    onExit?: (page?: Page) => void;
 }
 
 const dayOrder: (keyof WeeklyAvailability)[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 
-const VetLandingPage: React.FC<VetLandingPageProps> = ({ vetId, onBack }) => {
+const VetLandingPage: React.FC<VetLandingPageProps> = ({ vetId, onExit }) => {
     const [vet, setVet] = useState<Vet | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,7 +34,10 @@ const VetLandingPage: React.FC<VetLandingPageProps> = ({ vetId, onBack }) => {
 
     const handleBookingCompletion = (result: { success: boolean; data?: Appointment; error?: string }) => {
         if (result.success) {
-          setToast({ message: 'Booking successful! Check your appointments for details.', type: 'success' });
+          setToast({ message: 'Booking successful! Redirecting to your appointments...', type: 'success' });
+          setTimeout(() => {
+            if (onExit) onExit(Page.Appointments);
+          }, 2000);
         } else {
           setToast({ message: result.error || 'An unexpected error occurred.', type: 'error' });
         }
@@ -58,9 +62,9 @@ const VetLandingPage: React.FC<VetLandingPageProps> = ({ vetId, onBack }) => {
     return (
     <div className="bg-gray-50 min-h-screen font-sans relative">
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        {onBack && (
+        {onExit && (
             <div className="absolute top-4 left-4 z-50">
-                <Button onClick={onBack} variant="secondary">&larr; Back to App</Button>
+                <Button onClick={() => onExit()} variant="secondary">&larr; Back to App</Button>
             </div>
         )}
       

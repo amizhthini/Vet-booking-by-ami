@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -110,8 +111,9 @@ const AppContent: React.FC = () => {
     }
   }, [modalAppointment, startConsultation]);
 
-  const exitExternalView = useCallback(() => {
+  const exitExternalView = useCallback((redirectTo: Page = Page.Dashboard) => {
     setExternalPage(null);
+    setCurrentPage(redirectTo);
     // Clear the hash from the URL without reloading
     window.history.pushState("", document.title, window.location.pathname + window.location.search);
   }, []);
@@ -122,10 +124,10 @@ const AppContent: React.FC = () => {
 
   if (externalPage) {
     if (externalPage.type === 'vet') {
-        return <VetLandingPage vetId={externalPage.id} onBack={user ? exitExternalView : undefined} />;
+        return <VetLandingPage vetId={externalPage.id} onExit={user ? exitExternalView : undefined} />;
     }
     if (externalPage.type === 'clinic') {
-        return <ClinicLandingPage clinicId={externalPage.id} onBack={user ? exitExternalView : undefined} />;
+        return <ClinicLandingPage clinicId={externalPage.id} onExit={user ? exitExternalView : undefined} />;
     }
   }
 
@@ -163,7 +165,7 @@ const AppContent: React.FC = () => {
       case Page.PatientRecords:
         return <PatientRecordsPage viewPetProfile={viewPetProfile} />;
       case Page.PetProfile:
-        return activePet ? <PetProfilePage pet={activePet} navigateTo={navigateTo} /> : <PatientRecordsPage viewPetProfile={viewPetProfile} />;
+        return activePet ? <PetProfilePage pet={activePet} navigateTo={navigateTo} startConsultation={startConsultation} /> : <PatientRecordsPage viewPetProfile={viewPetProfile} />;
       case Page.VetManagement:
         return <VetManagementPage viewVetProfile={viewVetProfile} />;
       case Page.VetProfile:

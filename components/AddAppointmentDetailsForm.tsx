@@ -12,6 +12,7 @@ interface AddAppointmentDetailsFormProps {
   onSkip: () => void;
   onClose: () => void;
   isLoading: boolean;
+  confirmText?: string;
 }
 
 const FileUploadSection: React.FC<{
@@ -52,6 +53,7 @@ const AddAppointmentDetailsForm: React.FC<AddAppointmentDetailsFormProps> = ({
   onSkip,
   onClose,
   isLoading,
+  confirmText = 'Confirm Booking'
 }) => {
   const [userNotes, setUserNotes] = useState(initialNotes);
   const [attachments, setAttachments] = useState<Attachment[]>(initialAttachments);
@@ -124,7 +126,7 @@ const AddAppointmentDetailsForm: React.FC<AddAppointmentDetailsFormProps> = ({
           <div className="flex space-x-2">
             <Button onClick={onClose} variant="secondary" disabled={isLoading}>Cancel</Button>
             <Button onClick={handleSave} disabled={isLoading}>
-                {isLoading ? <Spinner size="sm" /> : 'Confirm Booking'}
+                {isLoading ? <Spinner size="sm" /> : confirmText}
             </Button>
           </div>
         </div>

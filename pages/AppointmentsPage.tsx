@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import AppointmentCard from '../components/AppointmentCard';
@@ -198,7 +199,7 @@ const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ startConsultation }
       <BookingModal 
         isOpen={isRescheduleModalOpen}
         onClose={() => setIsRescheduleModalOpen(false)}
-        vet={appointmentToReschedule?.vet || null}
+        mode="reschedule"
         appointmentToReschedule={appointmentToReschedule}
         onComplete={handleRescheduleComplete}
       />

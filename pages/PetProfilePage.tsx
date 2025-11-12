@@ -16,6 +16,7 @@ import Toast from '../components/ui/Toast';
 interface PetProfilePageProps {
   pet: Pet;
   navigateTo: (page: Page) => void;
+  startConsultation: (appointment: Appointment) => void;
 }
 
 const HealthRecordItem: React.FC<{ title: string; items: string[] }> = ({ title, items }) => (
@@ -32,7 +33,7 @@ const HealthRecordItem: React.FC<{ title: string; items: string[] }> = ({ title,
 );
 
 
-const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
+const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo, startConsultation }) => {
     const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
     const [owner, setOwner] = useState<PetOwner | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -172,7 +173,7 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
                                 <AppointmentCard 
                                     key={appt.id} 
                                     appointment={appt} 
-                                    onStartConsultation={() => {}} 
+                                    onStartConsultation={startConsultation} 
                                     {...petParentActions}
                                 />
                            ))}
@@ -195,7 +196,7 @@ const PetProfilePage: React.FC<PetProfilePageProps> = ({ pet, navigateTo }) => {
                     <BookingModal 
                         isOpen={isRescheduleModalOpen}
                         onClose={() => setIsRescheduleModalOpen(false)}
-                        vet={appointmentToReschedule?.vet || null}
+                        mode="reschedule"
                         appointmentToReschedule={appointmentToReschedule}
                         onComplete={handleRescheduleComplete}
                     />

@@ -141,9 +141,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
 
   const handleFinalConfirm = async () => {
-    const currentVet = isCreateMode ? selectedVet : (mode === 'reschedule' ? appointmentToReschedule?.vet : vet);
-
-    if (!currentVet || !selectedPet || !selectedService || !selectedDate || !selectedTime || !calculatedPrice) return;
+    if (!selectedVet || !selectedPet || !selectedService || !selectedDate || !selectedTime || !calculatedPrice) return;
 
     setIsLoading(true);
     try {
@@ -163,10 +161,10 @@ const BookingModal: React.FC<BookingModalProps> = ({
       } else { // Handles 'book' and 'create' modes
         const newAppointmentData = {
             pet: selectedPet,
-            vet: currentVet,
+            vet: selectedVet,
             ...commonData
         };
-        const newAppointment = await saveAppointment(newAppointmentData);
+        const newAppointment = await saveAppointment(newAppointmentData, 'Pending');
         onComplete({ success: true, data: newAppointment });
       }
       onClose();
@@ -181,7 +179,13 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const handleDetailsSave = (data: {userNotes: string; attachments: Attachment[]}) => {
     setUserNotes(data.userNotes);
     setAttachments(data.attachments);
-    handleFinalConfirm();
+    setStep(5);
+  };
+
+  const handleSkipDetails = () => {
+    setUserNotes(appointmentToReschedule?.userNotes || '');
+    setAttachments(appointmentToReschedule?.attachments || []);
+    setStep(5);
   };
 
   const filteredPets = isCreateMode
@@ -194,6 +198,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   if (mode === 'reschedule') title = `Reschedule for ${selectedPet?.name}`;
   if (mode === 'create') title = 'Create New Appointment';
   if (showAddPetForm) title = 'First, Add Your Pet';
+  if (step === 5) title = 'Confirm Your Appointment';
 
   // Handle unauthenticated user
   if (!user) {
@@ -210,7 +215,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   }
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && step !== 5) { // Don't show global spinner on final step
         return <div className="flex justify-center items-center h-48"><Spinner /></div>;
     }
     
@@ -352,9 +357,44 @@ const BookingModal: React.FC<BookingModalProps> = ({
                     initialAttachments={attachments}
                     onSave={handleDetailsSave}
                     onClose={onClose}
-                    onSkip={handleFinalConfirm}
+                    onSkip={handleSkipDetails}
                     isLoading={isLoading}
+                    confirmText="Proceed to Confirmation"
                 />
+            </div>
+          )}
+
+          {/* Step 5: Confirmation */}
+          {step === 5 && (
+            <div>
+                <div className="p-4 bg-gray-50 rounded-lg space-y-3 text-sm">
+                    <div>
+                        <span className="font-semibold text-gray-500">Pet:</span>
+                        <p className="font-medium text-gray-800">{selectedPet?.name}</p>
+                    </div>
+                     <div>
+                        <span className="font-semibold text-gray-500">With:</span>
+                        <p className="font-medium text-gray-800">{selectedVet?.name}</p>
+                    </div>
+                     <div>
+                        <span className="font-semibold text-gray-500">Service:</span>
+                        <p className="font-medium text-gray-800">{selectedService?.name}</p>
+                    </div>
+                     <div>
+                        <span className="font-semibold text-gray-500">When:</span>
+                        <p className="font-medium text-gray-800">{selectedDate} at {selectedTime}</p>
+                    </div>
+                     <div className="pt-2 border-t">
+                        <span className="font-semibold text-gray-500">Total:</span>
+                        <p className="text-2xl font-bold text-gray-800">${calculatedPrice?.toFixed(2)}</p>
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-between">
+                    <Button onClick={() => setStep(4)} variant="secondary" disabled={isLoading}>Back</Button>
+                    <Button onClick={handleFinalConfirm} disabled={isLoading}>
+                        {isLoading ? <Spinner size="sm" /> : 'Confirm & Proceed to Payment'}
+                    </Button>
+                </div>
             </div>
           )}
         </div>
