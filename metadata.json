@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Vet consult management sys by ami",
+  "description": "An end-to-end veterinary consultation management system for vets and clinics. It supports virtual, in-person, call, and mobile visits, with AI-powered consultation notes generation to streamline data entry.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
