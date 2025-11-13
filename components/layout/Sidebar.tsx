@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Page, Role } from '../../types';
 import { 
@@ -63,6 +64,7 @@ const VetNav: React.FC<SidebarProps> = (props) => (
     <NavItem page={Page.WebsiteManagement} {...props} icon={<ArrowTopRightOnSquareIcon />} />
     <NavItem page={Page.Financials} {...props} icon={<CurrencyDollarIcon />} />
     <NavItem page={Page.Settings} {...props} icon={<CogIcon />} />
+    <NavItem page={Page.RoleManagement} {...props} icon={<UsersGroupIcon />} />
   </ul>
 );
 
@@ -72,15 +74,16 @@ const ClinicNav: React.FC<SidebarProps> = (props) => (
       <NavItem page={Page.ScheduleManagement} {...props} icon={<ClockIcon />} />
       <NavItem page={Page.PatientRecords} {...props} icon={<FolderOpenIcon />} />
       <NavItem page={Page.VetManagement} {...props} icon={<VetsIcon />} />
-      <NavItem page={Page.ClinicProfile} {...props} icon={<BuildingOfficeIcon />} />
-      <NavItem page={Page.StaffManagement} {...props} icon={<UsersGroupIcon />} />
       <NavItem page={Page.Referrals} {...props} icon={<ArrowRightCircleIcon />} />
-      <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
       <NavItem page={Page.DocManagement} {...props} icon={<DocumentPlusIcon />} />
       <NavItem page={Page.Templates} {...props} icon={<TemplateIcon />} />
+      <NavItem page={Page.StaffManagement} {...props} icon={<UsersGroupIcon />} />
+      <NavItem page={Page.ClinicProfile} {...props} icon={<BuildingOfficeIcon />} />
+      <NavItem page={Page.Reports} {...props} icon={<DocumentChartBarIcon />} />
       <NavItem page={Page.Financials} {...props} icon={<CurrencyDollarIcon />} />
       <NavItem page={Page.MasterData} {...props} icon={<DatabaseIcon />} />
       <NavItem page={Page.Settings} {...props} icon={<CogIcon />} />
+      <NavItem page={Page.RoleManagement} {...props} icon={<UsersGroupIcon />} />
     </ul>
 );
 

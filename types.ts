@@ -1,3 +1,4 @@
+
 export enum Page {
     Dashboard = 'Dashboard',
     Vets = 'Vets & Clinics',
@@ -31,6 +32,7 @@ export enum Page {
     StaffManagement = 'Staff Management',
     MasterData = 'Master Data',
     Settings = 'Settings',
+    RoleManagement = 'Role Management & Controls',
 }
 
 export type Role = 'Pet Parent' | 'Veterinarian' | 'Clinic Admin' | 'Admin';

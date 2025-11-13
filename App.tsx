@@ -29,6 +29,7 @@ import ClinicProfilePage from './pages/ClinicProfilePage';
 import VetLandingPage from './pages/VetLandingPage';
 import ClinicLandingPage from './pages/ClinicLandingPage';
 import WebsiteManagementPage from './pages/WebsiteManagementPage';
+import RoleManagementPage from './pages/RoleManagementPage';
 import type { Appointment, Pet, Vet } from './types';
 import { Page, Role } from './types';
 import { AuthProvider } from './contexts/AuthContext';
@@ -160,6 +161,8 @@ const AppContent: React.FC = () => {
         return <FinancialsPage />;
       case Page.Settings:
         return <SettingsPage />;
+      case Page.RoleManagement:
+        return <RoleManagementPage />;
 
       // Clinic Admin Pages
       case Page.PatientRecords:
