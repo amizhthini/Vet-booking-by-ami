@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
-import DashboardPage from './pages/DashboardPage';
+import AnalyticsDashboardPage from './pages/AnalyticsDashboardPage';
 import VetsPage from './pages/VetsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import ConsultationPage from './pages/ConsultationPage';
@@ -139,7 +139,7 @@ const AppContent: React.FC = () => {
     switch (currentPage) {
       // Pet Parent Pages
       case Page.Dashboard:
-        return <DashboardPage navigateTo={navigateTo} startConsultation={startConsultation} />;
+        return <AnalyticsDashboardPage navigateTo={navigateTo} startConsultation={startConsultation} viewPetProfile={viewPetProfile} />;
       case Page.Vets:
         return <VetsPage navigateTo={navigateTo} />;
       case Page.Appointments:
@@ -147,7 +147,7 @@ const AppContent: React.FC = () => {
       case Page.MyPets:
         return <MyPetsPage navigateTo={navigateTo} />;
       case Page.Consultation:
-        return activeAppointment ? <ConsultationPage appointment={activeAppointment} navigateTo={navigateTo} /> : <DashboardPage navigateTo={navigateTo} startConsultation={startConsultation}/>;
+        return activeAppointment ? <ConsultationPage appointment={activeAppointment} navigateTo={navigateTo} /> : <AnalyticsDashboardPage navigateTo={navigateTo} startConsultation={startConsultation} viewPetProfile={viewPetProfile} />;
       
       // All-role pages
       case Page.Reports:
@@ -198,7 +198,7 @@ const AppContent: React.FC = () => {
         return <PlaceholderPage title={currentPage} />;
 
       default:
-        return <DashboardPage navigateTo={navigateTo} startConsultation={startConsultation}/>;
+        return <AnalyticsDashboardPage navigateTo={navigateTo} startConsultation={startConsultation} viewPetProfile={viewPetProfile} />;
     }
   };
 
